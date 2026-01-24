@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'apps.companies',
     'apps.core',
     'apps.dashboard',
-    'apps.bose',
+    'apps.base',
+    'apps.equipment',
 
     
 ]
