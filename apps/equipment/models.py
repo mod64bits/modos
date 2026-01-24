@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-from apps.accounts.model import Usuario
+from apps.accounts.models import Usuario
 from apps.companies.models import Empresa, Setor
 
 

@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.base',
     'apps.equipment',
-
+    'apps.orders',
     
 ]
 
