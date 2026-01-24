@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 
+
 class Empresa(models.Model):
     # ID utilizando UUID como chave primária
     id = models.UUIDField(
@@ -51,3 +52,13 @@ class Empresa(models.Model):
 
     def __str__(self):
         return f"{self.nome} ({self.cnpj})"
+
+
+class Setor(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # O setor OBRIGATORIAMENTE pertence a uma empresa
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='setores')
+    nome = models.CharField("Nome do Setor", max_length=100)
+    
+    # Campo opcional para descrever o setor (Financeiro, RH, TI...)
+    descricao = models.TextField("Descrição", blank=True)

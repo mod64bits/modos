@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Empresa
+from .models import Empresa, Setor
+
+
+class SetorInline(admin.TabularInline):
+    model = Setor
+    extra = 1 # Quantidade de linhas vazias extras para adicionar novos setores
+
+
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
@@ -31,3 +38,13 @@ class EmpresaAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(Setor)
+class SetorAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'empresa', 'descricao')
+    list_filter = ('empresa',)
+    search_fields = ('nome', 'empresa__nome')
+    autocomplete_fields = ['empresa']  # Útil se houver muitas empresas
+
+
