@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-2*r!3#v-98kb3ca)*o(#*m47yi=w_b7om!!!=1!!7ukjusfhc#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -111,12 +111,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'pt-br' # Alterado para Português do Brasil
+TIME_ZONE = 'America/Sao_Paulo' # Ajuste para seu fuso horário
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -124,3 +121,25 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Pasta onde você coloca seus arquivos estáticos durante o desenvolvimento
+# Crie a pasta "static" na raiz do projeto (mesmo nível do manage.py)
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Pasta onde o comando 'collectstatic' reunirá os arquivos para produção
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Configuração para Upload de Arquivos (Imagens de perfil, documentos, etc)
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Configuração do Modelo de Usuário Customizado (CRUCIAL)
+# Isso diz ao Django para usar o modelo que criamos em apps/accounts/models.py
+# O formato é 'app_label.ModelName'.
+# Como seu app está em 'apps.accounts', o label geralmente é 'accounts'
+AUTH_USER_MODEL = 'accounts.Usuario' 
+
+# Configuração de chave primária padrão
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

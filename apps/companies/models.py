@@ -62,3 +62,14 @@ class Setor(models.Model):
     
     # Campo opcional para descrever o setor (Financeiro, RH, TI...)
     descricao = models.TextField("Descrição", blank=True)
+
+
+    class Meta:
+            verbose_name = "Setor"
+            verbose_name_plural = "Setores"
+            # Garante que não existam dois setores com mesmo nome na MESMA empresa
+            unique_together = ('empresa', 'nome')
+
+
+    def __str__(self):
+        return f"{self.nome} - {self.empresa.nome}"
