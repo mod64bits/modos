@@ -33,7 +33,7 @@
   },
   "[django-html]": {
     "editor.formatOnSave": false,
-    "editor.defaultFormatter": "vscode.html-language-features",
+    "editor.defaultFormatter": "monosans.djlint",
     "editor.quickSuggestions": {
       "other": true,
       "comments": true,
