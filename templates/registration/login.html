@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+        <!-- Ícones Material Design (Compatível com o CSS .login__box i) -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+              rel="stylesheet">
+        <!-- Seus arquivos CSS -->
+        <link rel="stylesheet" href="{% static 'login/assets/css/styles.css' %}">
+        <link rel="stylesheet" href="{% static 'login/assets/css/media-query.css' %}">
+    </head>
+    <body>
+        <!-- Container principal .login (Grid centralizado) -->
+        <div class="login">
+            <!-- Imagem de fundo necessária para o efeito de vidro -->
+            <img src="{% static 'login/assets/img/login-bg.png' %}"
+                 alt="Background"
+                 class="login__bg">
+            <!-- Formulário com a classe .login__form para o efeito Glassmorphism -->
+            <form action="" method="POST" class="login__form">
+                {% csrf_token %}
+                <h1 class="login__title">Login</h1>
+                <!-- Bloco de Erros Gerais (Non-field errors) -->
+                <!-- Ex: "Usuário ou senha incorretos" -->
+                {% if form.non_field_errors %}
+                    <div style="margin-bottom: 1rem; text-align: center;">
+                        {% for error in form.non_field_errors %}
+                            <p class="login__message login__message-show" style="margin: 0;">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <!-- Mensagem genérica se houver erros nos campos -->
+                {% if form.errors and not form.non_field_errors %}
+                    <p class="login__message login__message-show"
+                       style="text-align: center;
+                              margin-bottom: 1rem">Por favor, corrija os erros abaixo.</p>
+                {% endif %}
+                <!-- Container dos inputs -->
+                <div class="login__inputs">
+                    <!-- Campo: Usuário (username) -->
+                    <!-- Adiciona classe de erro se form.username.errors existir -->
+                    <div class="login__box {% if form.username.errors %}login__box-input--error{% endif %}">
+                        <i class="material-icons">person</i>
+                        <!-- Input manual para garantir a classe .login__input -->
+                        <input type="text"
+                               name="username"
+                               id="id_username"
+                               placeholder="Seu usuário"
+                               class="login__input"
+                               required
+                               autocomplete="username">
+                    </div>
+                    <!-- Mensagem de erro específica do campo -->
+                    {% if form.username.errors %}
+                        <span class="login__message login__message-show">{{ form.username.errors.0 }}</span>
+                    {% endif %}
+                    <!-- Campo: Senha (password) -->
+                    <div class="login__box {% if form.password.errors %}login__box-input--error{% endif %}">
+                        <i class="material-icons">vpn_key</i>
+                        <input type="password"
+                               name="password"
+                               id="id_password"
+                               placeholder="Sua senha"
+                               class="login__input"
+                               required
+                               autocomplete="current-password">
+                    </div>
+                    {% if form.password.errors %}
+                        <span class="login__message login__message-show">{{ form.password.errors.0 }}</span>
+                    {% endif %}
+                </div>
+                <!-- Checkbox / Lembrar-me (Opcional, mantendo estrutura do CSS) -->
+               
+                <!-- Botão de Envio -->
+                <button type="submit" class="login__button">Entrar</button>
+                <!-- Link de Cadastro (Opcional) -->
+                
+            </form>
+        </div>
+    </body>
+</html>
