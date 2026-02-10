@@ -1,4 +1,4 @@
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -32,3 +32,21 @@ class ChamadoCreateView(LoginRequiredMixin, CreateView):
         chamado.save()
         messages.success(self.request, f"Chamado #{chamado.numero} aberto com sucesso!")
         return super().form_valid(form)
+
+
+
+class ChamadoDetailView(LoginRequiredMixin, DetailView):
+    model = Chamado
+    template_name = 'orders/chamado_detail.html'
+    context_object_name = 'chamado'
+
+    def get_queryset(self):
+        """
+        Segurança: Garante que o usuário só consiga ver detalhes
+        dos chamados que ELE MESMO abriu.
+        """
+        qs = super().get_queryset()
+        # Se for Staff (Técnico), pode ver tudo. Se for usuário comum, só os dele.
+        if self.request.user.is_staff:
+            return qs
+        return qs.filter(solicitante=self.request.user)

@@ -124,7 +124,7 @@
                                 {{ order.aberto_em|date:"d/m/Y H:i" }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Detalhes</a>
+                                <a href="{% url 'orders:chamado_detalhe' order.id%}" class="text-indigo-600 hover:text-indigo-900 mr-3">Detalhes</a>
                                 {% if order.status == 'ABERTO' %}
                                     <a href="#" class="text-red-600 hover:text-red-900">Cancelar</a>
                                 {% endif %}
@@ -164,6 +164,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data Fechamento</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Técnico</th>
+                            
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -180,6 +181,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.fechado_em|date:"d/m/Y" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.tecnico_atribuido.first_name|default:"--" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'orders:chamado_detalhe' order.id %}" class="text-indigo-600 hover:text-indigo-900">Detalhes</a>
+                            </td>
                         </tr>
                         {% empty %}
                          <tr>

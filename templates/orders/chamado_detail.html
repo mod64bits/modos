@@ -1,0 +1,115 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Detalhes do Chamado #{{ chamado.numero }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Cabeçalho com Botão Voltar -->
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <a href="{% url 'dashboard:dashbord_user' %}" class="text-indigo-600 hover:text-indigo-900 flex items-center text-sm font-medium mb-2">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Voltar ao Dashboard
+                </a>
+                <h1 class="text-2xl font-bold text-gray-900">
+                    Chamado #{{ chamado.numero }}
+                </h1>
+                <p class="text-sm text-gray-500">Aberto em {{ chamado.aberto_em|date:"d/m/Y \à\s H:i" }}</p>
+            </div>
+
+            <!-- Badge de Status Grande -->
+            <span class="px-4 py-2 rounded-full text-sm font-bold tracking-wide
+                {% if chamado.status == 'ABERTO' %}bg-blue-100 text-blue-800
+                {% elif chamado.status == 'EM_ATENDIMENTO' %}bg-yellow-100 text-yellow-800
+                {% elif chamado.status == 'AGUARDANDO_PECA' %}bg-red-100 text-red-800
+                {% elif chamado.status == 'RESOLVIDO' %}bg-green-100 text-green-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ chamado.get_status_display }}
+            </span>
+        </div>
+
+        <!-- Card Principal: Informações -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    {{ chamado.titulo }}
+                </h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                    Categoria: {{ chamado.categoria.nome|default:"Geral" }} | Tipo: {{ chamado.get_tipo_display }}
+                </p>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <div class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                    
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Descrição do Problema</dt>
+                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded-md border border-gray-200">
+                            {{ chamado.descricao|linebreaks }}
+                        </dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Equipamento</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {% if chamado.equipamento %}
+                                {{ chamado.equipamento.nome }} ({{ chamado.equipamento.serial|default:"S/N" }})
+                            {% else %}
+                                <span class="text-gray-400 italic">Não vinculado</span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Prioridade</dt>
+                        <dd class="mt-1 text-sm font-bold 
+                            {% if chamado.prioridade == 'CRITICA' %}text-red-600
+                            {% elif chamado.prioridade == 'ALTA' %}text-orange-600
+                            {% else %}text-gray-900{% endif %}">
+                            {{ chamado.get_prioridade_display }}
+                        </dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Setor</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ chamado.setor.nome|default:"--" }}</dd>
+                    </div>
+
+                    <div class="sm:col-span-1">
+                        <dt class="text-sm font-medium text-gray-500">Técnico Responsável</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ chamado.nome_tecnico }}</dd>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ÁREA DE RESOLUÇÃO / LAUDO TÉCNICO -->
+        <!-- Só aparece se o chamado estiver RESOLVIDO ou CANCELADO -->
+        {% if chamado.status == 'RESOLVIDO' or chamado.status == 'CANCELADO' %}
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg border-l-4 {% if chamado.status == 'RESOLVIDO' %}border-green-500{% else %}border-gray-500{% endif %}">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center">
+                    {% if chamado.status == 'RESOLVIDO' %}
+                        <svg class="w-6 h-6 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Solução Técnica / Laudo
+                    {% else %}
+                        <svg class="w-6 h-6 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        Motivo do Cancelamento / Encerramento
+                    {% endif %}
+                </h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    Encerrado em: <strong>{{ chamado.fechado_em|date:"d/m/Y \à\s H:i" }} </strong>por <strong>{{ chamado.tecnico_atribuido }}</strong>
+                </p>
+            </div>
+            <div class="px-4 py-5 sm:p-6 bg-gray-50">
+                <div class="text-gray-800 text-sm whitespace-pre-line leading-relaxed">
+                    {{ chamado.relatorio_tecnico|default:"Nenhuma observação técnica registrada." }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
