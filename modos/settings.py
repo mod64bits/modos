@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # libes
+    'tailwind',
+    'theme',
     # apps
     'apps.accounts',
     'apps.companies',
@@ -147,3 +150,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login' # O nome da URL que usaremos para a página de login
 LOGIN_REDIRECT_URL = 'dashboard:dashbord_user' # Para onde ir após o login bem-sucedido
 LOGOUT_REDIRECT_URL = 'login' # Para onde ir após o logout
+
+
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]

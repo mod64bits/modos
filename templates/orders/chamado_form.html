@@ -1,0 +1,110 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Abrir Novo Chamado{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="md:flex md:items-center md:justify-between mb-8">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Novo Chamado
+                </h2>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{% url 'dashboard:dashbord_user' %}" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                    &larr; Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="post" action=".">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="rounded-md bg-red-50 p-4 mb-4">
+                            <div class="flex">
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800">Erros no formulário:</h3>
+                                    <div class="mt-2 text-sm text-red-700">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-6 gap-6">
+                        
+                        <!-- Título -->
+                        <div class="col-span-6">
+                            <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700">Assunto / Título</label>
+                            {{ form.titulo }}
+                            {% if form.titulo.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ form.titulo.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tipo e Prioridade -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700">Tipo de Solicitação</label>
+                            {{ form.tipo }}
+                        </div>
+
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="{{ form.prioridade.id_for_label }}" class="block text-sm font-medium text-gray-700">Prioridade</label>
+                            {{ form.prioridade }}
+                        </div>
+
+                        <!-- Categoria e Setor -->
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="{{ form.categoria.id_for_label }}" class="block text-sm font-medium text-gray-700">Categoria</label>
+                            {{ form.categoria }}
+                        </div>
+
+                        <div class="col-span-6 sm:col-span-3">
+                            <label for="{{ form.setor.id_for_label }}" class="block text-sm font-medium text-gray-700">Setor Envolvido</label>
+                            {{ form.setor }}
+                        </div>
+
+                        <!-- Equipamento -->
+                        <div class="col-span-6">
+                            <label for="{{ form.equipamento.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Equipamento Relacionado (Opcional)
+                            </label>
+                            {{ form.equipamento }}
+                            <p class="mt-1 text-xs text-gray-500">Selecione apenas se o problema for num equipamento específico.</p>
+                        </div>
+
+                        <!-- Descrição -->
+                        <div class="col-span-6">
+                            <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Descrição Detalhada
+                            </label>
+                            <div class="mt-1">
+                                {{ form.descricao }}
+                            </div>
+                            <p class="mt-2 text-sm text-gray-500">
+                                Explique o que aconteceu, mensagens de erro, etc.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="mt-6 flex justify-end">
+                        <a href="{% url 'dashboard:dashbord_user' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Abrir Chamado
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
