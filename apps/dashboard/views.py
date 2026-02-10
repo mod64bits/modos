@@ -4,7 +4,7 @@ from apps.orders.models import Chamado  # Certifique-se que o import está corre
 
 
 class DashboardUserView(LoginRequiredMixin, TemplateView):
-    template_name = 'dashboard/dashboard-user-view.html'
+    template_name = 'dashboard/dashboarduserview.html'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
