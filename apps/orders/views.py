@@ -1,9 +1,12 @@
 from django.views.generic import CreateView, DetailView
+from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.contrib import messages
 from .models import Chamado
 from .forms import ChamadoForm
+
 
 class ChamadoCreateView(LoginRequiredMixin, CreateView):
     model = Chamado
@@ -50,3 +53,20 @@ class ChamadoDetailView(LoginRequiredMixin, DetailView):
         if self.request.user.is_staff:
             return qs
         return qs.filter(solicitante=self.request.user)
+
+
+class ChamadoCancelView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        # Busca o chamado, garantindo que pertence ao usuário logado
+        chamado = get_object_or_404(Chamado, pk=pk, solicitante=request.user)
+        
+        # Só permite cancelar se estiver Aberto
+        if chamado.status == 'ABERTO':
+            chamado.status = 'CANCELADO'
+            chamado.save()
+            messages.success(request, f"Chamado #{chamado.numero} cancelado com sucesso.")
+        else:
+            messages.error(request, f"Não é possível cancelar este chamado (Status atual: {chamado.get_status_display()}).")
+        
+        # Redireciona de volta para o Dashboard
+        return redirect('dashboard:dashbord_user')

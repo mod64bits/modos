@@ -99,7 +99,13 @@
                     {% endif %}
                 </h3>
                 <p class="mt-1 text-sm text-gray-500">
-                    Encerrado em: <strong>{{ chamado.fechado_em|date:"d/m/Y \à\s H:i" }} </strong>por <strong>{{ chamado.tecnico_atribuido }}</strong>
+                    Encerrado em: <strong>{{ chamado.fechado_em|date:"d/m/Y \à\s H:i" }} </strong>por <strong>
+                    {% if chamado.status == 'CANCELADO' %}
+                        {{ chamado.solicitante }}
+                    {% else %}
+                        {{ chamado.tecnico_atribuido }}
+                    {% endif %}
+                    </strong>
                 </p>
             </div>
             <div class="px-4 py-5 sm:p-6 bg-gray-50">
