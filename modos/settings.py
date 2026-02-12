@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     # libes
     'tailwind',
     'theme',
+    'django_tailwind_cli',
+    'django_extensions',
     # apps
     'apps.accounts',
     'apps.companies',
@@ -129,6 +131,7 @@ STATIC_URL = 'static/'
 # Crie a pasta "static" na raiz do projeto (mesmo nível do manage.py)
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
+    BASE_DIR / "assets"
 ]
 
 # Pasta onde o comando 'collectstatic' reunirá os arquivos para produção
