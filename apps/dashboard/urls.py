@@ -2,8 +2,8 @@ from django.urls import path
 from .views import DashboardUserView
 
 
-app_name = 'dashboard'
+app_name = "dashboard"
 
 urlpatterns = [
-    path('user/', DashboardUserView.as_view(), name='dashbord_user'),
+    path("", DashboardUserView.as_view(), name="dashbord_user"),
 ]
