@@ -13,6 +13,7 @@ urlpatterns = [
     # path("", TemplateView.as_view(template_name="base/base.html")),
     path("", include(dashboard_urls)),
     path("chamados", include(chamados_urls)),
+    # path('orders/', include('apps.orders.urls')),  # Isso resolve o erro 'chamado_detail'
     path("admin/", admin.site.urls),
     path(
         "login/",
