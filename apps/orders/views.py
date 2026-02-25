@@ -2,10 +2,10 @@ from django.views.generic import CreateView, DetailView
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse, NoReverseMatch
 from django.contrib import messages
 from .models import Chamado
-from .forms import ChamadoForm
+from .forms import ChamadoForm, ComentarioForm
 
 
 class ChamadoCreateView(LoginRequiredMixin, CreateView):
@@ -54,6 +54,16 @@ class ChamadoDetailView(LoginRequiredMixin, DetailView):
             return qs
         return qs.filter(solicitante=self.request.user)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # 1. Traz todos os comentários vinculados a este chamado
+        context['comentarios'] = self.object.comentarios.select_related('autor').all()
+        # 2. O SEGREDO ESTÁ AQUI: Enviar o formulário vazio para o template!
+        # Sem essa variável 'comentario_form', os campos de texto não aparecem na tela.
+        if self.object.status not in ['RESOLVIDO', 'CANCELADO']:
+            context['comentario_form'] = ComentarioForm()
+        return context
+
 
 class ChamadoCancelView(LoginRequiredMixin, View):
     def post(self, request, pk):
@@ -70,3 +80,46 @@ class ChamadoCancelView(LoginRequiredMixin, View):
         
         # Redireciona de volta para o Dashboard
         return redirect('dashboard:dashbord_user')
+
+
+
+class AdicionarComentarioView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        chamado = get_object_or_404(Chamado, pk=pk)
+        
+        # Helper robusto para resolver a URL de redirecionamento 
+        # (retorna para a página de onde o usuário veio)
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            redirect_url = referer
+        else:
+            try:
+                redirect_url = reverse('orders:chamado_detail', kwargs={'pk': pk})
+            except NoReverseMatch:
+                try:
+                    redirect_url = reverse('chamado_detail', kwargs={'pk': pk})
+                except NoReverseMatch:
+                    redirect_url = reverse('dashboard:dashboard_user')
+        
+        # Validação de Segurança
+        if not request.user.is_staff and chamado.solicitante != request.user:
+            messages.error(request, "Você não tem permissão para interagir com este chamado.")
+            return redirect(redirect_url)
+            
+        # Bloqueio de inserção caso finalizado/cancelado
+        if chamado.status in ['RESOLVIDO', 'CANCELADO']:
+            messages.error(request, "Este chamado já está encerrado e não aceita novos comentários.")
+            return redirect(redirect_url)
+
+        # Trata os dados e o arquivo em anexo
+        form = ComentarioForm(request.POST, request.FILES)
+        if form.is_valid():
+            comentario = form.save(commit=False)
+            comentario.chamado = chamado
+            comentario.autor = request.user
+            comentario.save()
+            messages.success(request, "Comentário adicionado com sucesso.")
+        else:
+            messages.error(request, "Erro ao adicionar comentário. Verifique se o arquivo enviado é válido.")
+            
+        return redirect(redirect_url)

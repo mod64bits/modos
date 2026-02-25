@@ -1,5 +1,5 @@
 from django import forms
-from .models import Chamado
+from .models import Chamado, Comentario
 from apps.equipment.models import Equipamento # Ajuste o import conforme seu app de equipamentos
 
 class ChamadoForm(forms.ModelForm):
@@ -43,3 +43,23 @@ class ChamadoForm(forms.ModelForm):
             self.fields['equipamento'].queryset = Equipamento.objects.filter(empresa=user.empresa)
             # Opcional: Filtrar setores da empresa
             # self.fields['setor'].queryset = Setor.objects.filter(empresa=user.empresa)
+
+
+class ComentarioForm(forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ['texto', 'anexo']
+        widgets = {
+            'texto': forms.Textarea(attrs={
+                'class': 'shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md',
+                'rows': 3,
+                'placeholder': 'Escreva o seu comentário aqui...'
+            }),
+            'anexo': forms.ClearableFileInput(attrs={
+                'class': 'mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100'
+            })
+        }
+        labels = {
+            'texto': '',  # Ocultamos a label de texto para ficar mais limpo
+            'anexo': ''   # A label já está desenhada no HTML
+        }

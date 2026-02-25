@@ -178,3 +178,19 @@ class Chamado(models.Model):
 
     def __str__(self):
         return f"#{self.numero} - {self.titulo}"
+
+
+class Comentario(models.Model):
+    chamado = models.ForeignKey(Chamado, on_delete=models.CASCADE, related_name='comentarios')
+    autor = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    texto = models.TextField("Comentário")
+    anexo = models.FileField(upload_to='comentarios_anexos/', blank=True, null=True, help_text="Anexe imagens ou documentos (opcional)")
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['criado_em']
+        verbose_name = "Comentário"
+        verbose_name_plural = "Comentários"
+
+    def __str__(self):
+        return f"Comentário de {self.autor.username} no chamado #{self.chamado.numero}"
