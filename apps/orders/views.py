@@ -22,19 +22,22 @@ class ChamadoCreateView(LoginRequiredMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        """Preenche campos automáticos antes de salvar"""
         chamado = form.save(commit=False)
-        
-        # Define quem abriu o chamado
         chamado.solicitante = self.request.user
-        
-        # Define a empresa do chamado (baseada no usuário)
         if self.request.user.empresa:
             chamado.empresa = self.request.user.empresa
-            
+        
+        # Guardamos o chamado APENAS UMA VEZ (dispara o e-mail de "Novo Chamado")
         chamado.save()
+        self.object = chamado
+        
         messages.success(self.request, f"Chamado #{chamado.numero} aberto com sucesso!")
-        return super().form_valid(form)
+        
+        # Retornamos o redirecionamento diretamente. 
+        # Se chamássemos super().form_valid(form), o Django faria um segundo .save() automaticamente, 
+        # gerando o e-mail duplicado de "Atualização".
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.get_success_url())
 
 
 

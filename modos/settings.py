@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'apps.dashboard',
     'apps.base',
     'apps.equipment',
-    'apps.orders',
+    'apps.orders.apps.OrdersConfig',
     
 ]
 
@@ -177,3 +177,9 @@ TAILWIND_APP_NAME = 'theme'
 INTERNAL_IPS = [
     "127.0.0.1",
 ]
+
+
+# Configuracao pesonalizada de servidor de e-mail
+
+EMAIL_BACKEND = 'apps.core.email_backend.ConfiguracaoDBEmailBackend'
+DEFAULT_FROM_EMAIL = 'nao-responda@seusistema.com'
