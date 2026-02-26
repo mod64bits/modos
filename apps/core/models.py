@@ -18,6 +18,12 @@ class ConfiguracaoGeral(models.Model):
         default="Sistema de Gestão de TI. Todos os direitos reservados.",
         help_text="Texto de copyright que aparece no final da página."
     )
+
+    site_url = models.URLField(
+        "URL do Sistema", 
+        default="http://172.16.254.77:8000",
+        help_text="URL base do sistema usada para gerar links em e-mails (ex: https://meusistema.com.br)"
+    )
     
     # Singleton: Forçamos o ID a ser sempre 1
     def save(self, *args, **kwargs):
