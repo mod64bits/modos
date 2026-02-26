@@ -29,6 +29,7 @@ if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
+    CSRF_TRUSTED_ORIGINS = ['https://manager.mod64bits.online']
 
 
 # Application definition
