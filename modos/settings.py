@@ -184,3 +184,4 @@ INTERNAL_IPS = [
 
 EMAIL_BACKEND = 'apps.core.email_backend.ConfiguracaoDBEmailBackend'
 DEFAULT_FROM_EMAIL = 'nao-responda@seusistema.com'
+CSRF_TRUSTED_ORIGINS = ['https://manager.mod64bits.online']
