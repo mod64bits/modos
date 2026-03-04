@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # 1. Servidor Django (Desenvolvimento)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Anula completamente o entrypoint de produção para não haver conflitos
+    entrypoint: []
+    # Chama o shell e executa os comandos de forma explícita e segura
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      # Mapeia a pasta atual (seu computador) para /app (no container)
+      # Isso garante que qualquer edição nos arquivos atualize o servidor na hora!
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1  # Força o modo Debug=True
+      - SECRET_KEY=chave_secreta_dev_12345
+      - DJANGO_ALLOWED_HOSTS=* localhost 127.0.0.1
+      - DATABASE=sqlite # Força o uso do SQLite3 local
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  # 2. Tailwind CSS (Watcher)
+  tailwind:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Anula completamente o entrypoint de produção (evita rodar o gunicorn por acidente)
+    entrypoint: []
+    # Mantém o processo do Tailwind rodando e assistindo mudanças no HTML
+    command: "python manage.py tailwind start"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=1
+      - DATABASE=sqlite
+    depends_on:
+      - web
+    # TTY e STDIN mantêm o terminal interativo aberto para o "watcher" do Tailwind não fechar com código 0
+    tty: true
+    stdin_open: true
+
+  # 3. Fila de Mensagens (Broker)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # 4. Trabalhador em Background (Celery)
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # Anula o entrypoint para evitar conflitos de shell que causam exit code 0
+    entrypoint: []
+    # Roda o Celery puro. O container continuará ativo escutando as tarefas!
+    command: "celery -A modos worker -l info"
+    volumes:
+      - .:/app
+    environment:
+      - DEBUG=1
+      - DATABASE=sqlite
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+    restart: on-failure

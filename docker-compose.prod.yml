@@ -24,6 +24,7 @@ services:
       - .env.prod
     security_opt:
       - seccomp:unconfined
+
   redis:
     image: redis:7-alpine
     restart: always
@@ -34,6 +35,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    # CORREÇÃO CRÍTICA: Anula o script entrypoint.prod.sh
+    # Garante que este contentor rode apenas o Celery e não o Gunicorn!
+    entrypoint: []
     command: celery -A modos worker -l info
     volumes:
       - static_volume:/app/staticfiles
@@ -47,7 +51,7 @@ services:
       - web
       - redis
       - db
-
+    restart: on-failure
 
   nginx:
     build: ./nginx
