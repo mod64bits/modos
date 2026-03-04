@@ -29,6 +29,7 @@ if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
+   
 
 
 # Application definition
@@ -183,3 +184,7 @@ INTERNAL_IPS = [
 
 EMAIL_BACKEND = 'apps.core.email_backend.ConfiguracaoDBEmailBackend'
 DEFAULT_FROM_EMAIL = 'nao-responda@seusistema.com'
+CSRF_TRUSTED_ORIGINS = ['https://manager.mod64bits.online']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True

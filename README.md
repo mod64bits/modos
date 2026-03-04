@@ -1,31 +1,46 @@
 # Sistema de Gestão de TI e Helpdesk (Django)
 
-Este projeto é um sistema web desenvolvido em Django para gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controle de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).
+Este projeto é um sistema web desenvolvido em Django para gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controlo de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).
 
 ## 🚀 Funcionalidades Principais
 
 ### 1. Gestão Corporativa (App `accounts`)
-* **Multi-tenant**: Estrutura preparada para gerir múltiplas empresas no mesmo banco de dados.
-* **Hierarquia**: Empresa -> Setores -> Usuários.
-* **Usuários Personalizados**: Login com vínculo obrigatório a uma Empresa e Setor.
-* **Segurança**: Mixins de proteção para garantir que usuários só vejam dados da sua própria empresa.
+* **Multi-tenant**: Estrutura preparada para gerir múltiplas empresas na mesma base de dados.
+* **Hierarquia**: Empresa -> Setores -> Utilizadores.
+* **Utilizadores Personalizados**: Login com vínculo obrigatório a uma Empresa e Setor.
+* **Segurança**: Mixins de proteção para garantir que os utilizadores só vejam dados da sua própria empresa.
 
 ### 2. Inventário de Ativos (App `equipamentos`)
-* **Herança de Modelos**: 
-    * `Equipamento` (Base): Serial, Marca, Modelo, Responsável.
-    * `Computador` (Filho): Processador, RAM + Discos.
-    * `Periferico` (Filho): Monitores, Teclados, Impressoras.
+* **Herança de Modelos**:
+  * `Equipamento` (Base): Serial, Marca, Modelo, Responsável.
+  * `Computador` (Filho): Processador, RAM + Discos.
+  * `Periferico` (Filho): Monitores, Teclados, Impressoras.
 * **Gestão de Armazenamento**: Vínculo *One-to-Many* para múltiplos discos (SSD/HDD) por computador.
-* **Rastreabilidade**: Periféricos podem ser vinculados ("plugados") a um computador específico ou ficarem livres no estoque.
+* **Rastreabilidade**: Periféricos podem ser vinculados ("plugados") a um computador específico ou ficarem livres no stock.
 
-### 3. Service Desk / Chamados (App `chamados`)
+### 3. Service Desk / Chamados (App `orders` / `chamados`)
 * **Tickets e O.S.**: Abertura de chamados para manutenção corretiva, preventiva ou requisições.
-* **Integração**: Histórico de manutenção visível diretamente na tela do equipamento.
+* **Sistema de Comentários**: Interação contínua entre utilizador e técnico na página de detalhes da O.S., com suporte a upload de anexos (imagens/documentos). O formulário é bloqueado automaticamente quando o chamado é encerrado.
 * **Fluxo de Trabalho**:
-    * Atribuição de técnicos (apenas usuários `Staff`).
-    * Log automático de transferência de técnicos (Auditoria).
-    * Mudança automática de status (Aberto -> Em Atendimento).
-    * Categorização por tipo de serviço (Hardware, Software, Rede).
+  * Atribuição de técnicos (apenas utilizadores `Staff`).
+  * Registo automático de transferência de técnicos (Auditoria).
+  * Mudança automática de status (Aberto -> Em Atendimento).
+  * Categorização por tipo de serviço (Hardware, Software, Rede).
+
+### 4. Dashboards e Gráficos (App `dashboard`)
+* **Painel do Utilizador**: Visão consolidada de chamados em aberto, andamento e histórico. Inclui cancelamento seguro via Modal (protegido por CSRF).
+* **Painel do Administrador/Técnico**:
+  * Fila de espera de chamados (Não Atribuídos).
+  * Opção rápida para o técnico "Puxar O.S." para si.
+  * Gráficos dinâmicos (via Chart.js) exibindo o volume de chamados por status.
+  * Filtros em tempo real na listagem.
+
+### 5. Configurações Globais e Notificações (App `core`)
+* **Design Dinâmico (Singleton)**: Alteração do Título do Sistema, texto de Rodapé e URL Base do sistema diretamente pelo Django Admin, refletindo instantaneamente em todo o site.
+* **Servidor de E-mail (SMTP) no Admin**: Backend de e-mail customizado que lê as configurações (Host, Porta, Utilizador, Password, TLS) diretamente da base de dados. Permite trocar a conta de disparo sem alterar o código-fonte ou reiniciar o servidor.
+* **Notificações Automáticas**: Disparo de e-mails em tempo real (utilizando Django Signals) para alertar solicitantes e técnicos sempre que um chamado for aberto ou atualizado.
+
+---
 
 ## 🛠️ Instalação e Configuração
 
@@ -33,50 +48,10 @@ Este projeto é um sistema web desenvolvido em Django para gestão completa de d
 * Python 3.8+
 * Django 4.0+
 * `django-localflavor` (Opcional, para validação de CNPJ)
+* `django-tailwind` (Para a renderização do frontend)
 
 ### Passo a Passo
 
-1.  **Clonar e Instalar Dependências**
-    ```bash
-    pip install django django-stubs
-    ```
-
-2.  **Configuração Inicial**
-    No arquivo `settings.py`, certifique-se de definir o modelo de usuário personalizado:
-    ```python
-    AUTH_USER_MODEL = 'accounts.Usuario'
-    ```
-
-3.  **Banco de Dados**
-    ```bash
-    python manage.py makemigrations accounts equipamentos chamados
-    python manage.py migrate
-    ```
-
-4.  **Criar Superusuário**
-    ```bash
-    python manage.py createsuperuser
-    ```
-
-5.  **Rodar o Servidor**
-    ```bash
-    python manage.py runserver
-    ```
-
-## 📚 Estrutura do Admin
-
-O painel administrativo foi altamente customizado para produtividade:
-
-* **Empresas**: Criação de setores via *Inline* na mesma tela.
-* **Computadores**: 
-    * Adição de Discos e Periféricos na mesma tela.
-    * Visualização do **Histórico de Chamados** do equipamento (Somente leitura).
-* **Chamados**:
-    * Filtros por status, prioridade e técnico.
-    * Ação em massa para "Fechar Chamados".
-    * Campo de auditoria automática para trocas de técnicos.
-
-## 📝 Notas de Desenvolvimento
-
-* **UUIDs**: Todos os modelos utilizam UUID como chave primária para maior segurança e facilidade em migrações de dados futuras.
-* **Mixins**: Utilize o `EmpresaFilterMixin` em todas as Views para garantir o isolamento dos dados entre clientes.
+1. **Clonar e Instalar Dependências**
+   ```bash
+   pip install django django-stubs django-tailwind
