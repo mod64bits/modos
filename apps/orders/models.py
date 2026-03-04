@@ -194,3 +194,29 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentário de {self.autor.username} no chamado #{self.chamado.numero}"
+
+
+
+class LogEmail(models.Model):
+    STATUS_CHOICES = [
+        ('PENDENTE', 'Pendente (Na Fila)'),
+        ('ENVIADO', 'Enviado com Sucesso'),
+        ('ERRO', 'Erro no Envio'),
+    ]
+
+    chamado = models.ForeignKey(Chamado, on_delete=models.CASCADE, related_name='logs_email')
+    assunto = models.CharField("Assunto", max_length=255)
+    destinatarios = models.TextField("Destinatários", blank=True, help_text="Lista de e-mails que receberão a notificação.")
+    status = models.CharField("Status de Envio", max_length=20, choices=STATUS_CHOICES, default='PENDENTE')
+    erro_mensagem = models.TextField("Mensagem de Erro", blank=True, null=True)
+    
+    criado_em = models.DateTimeField("Criado em", auto_now_add=True)
+    atualizado_em = models.DateTimeField("Atualizado em", auto_now=True)
+
+    class Meta:
+        ordering = ['-criado_em']
+        verbose_name = "Log de E-mail"
+        verbose_name_plural = "Logs de E-mails"
+
+    def __str__(self):
+        return f"Email: {self.assunto} - {self.get_status_display()}"
