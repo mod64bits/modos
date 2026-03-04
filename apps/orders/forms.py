@@ -42,7 +42,8 @@ class ChamadoForm(forms.ModelForm):
             # Filtra equipamentos para mostrar APENAS os da empresa do usuário
             self.fields['equipamento'].queryset = Equipamento.objects.filter(empresa=user.empresa)
             # Opcional: Filtrar setores da empresa
-            # self.fields['setor'].queryset = Setor.objects.filter(empresa=user.empresa)
+            self.fields['setor'].queryset = user.empresa.setores.all()
+
 
 
 class ComentarioForm(forms.ModelForm):
