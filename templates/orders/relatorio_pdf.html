@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 landscape; /* Paisagem para caber mais colunas */
+            margin: 1cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 742pt; top: 570pt; height: 20pt;
+            }
+        }
+        body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
+        h1 { font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background-color: #1e3a8a; color: white; text-align: left; padding: 6px; border: 1px solid #d1d5db; }
+        .data-table td { padding: 6px; border: 1px solid #d1d5db; }
+        .row-even { background-color: #f9fafb; }
+        .footer { text-align: right; font-size: 10px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <h1>Relatório Gerencial de O.S.</h1>
+    
+    <p><strong>Filtros aplicados:</strong> 
+        Empresa: {% if filtros.empresa %}Filtro Ativo{% else %}Todas{% endif %} | 
+        Status: {{ filtros.status|default:"Todos" }} |
+        Período: {{ filtros.data_inicio|default:"Início" }} até {{ filtros.data_fim|default:"Hoje" }}
+    </p>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Protocolo</th>
+                <th>Data</th>
+                <th>Empresa</th>
+                <th>Solicitante</th>
+                <th>Assunto</th>
+                <th>Status</th>
+                <th>Técnico</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in chamados %}
+            <tr class="{% cycle 'row-even' '' %}">
+                <td>#{{ order.numero }}</td>
+                <td>{{ order.aberto_em|date:"d/m/Y" }}</td>
+                <td>{{ order.empresa.nome|truncatechars:15 }}</td>
+                <td>{{ order.solicitante.username }}</td>
+                <td>{{ order.titulo|truncatechars:35 }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>{{ order.tecnico_atribuido.username|default:"--" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center;">Nenhum chamado encontrado para os filtros selecionados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footer_content" class="footer">
+        Relatório gerado em {{ data_geracao|date:"d/m/Y H:i" }} - Página <pdf:pagenumber> de <pdf:pagecount>
+    </div>
+</body>
+</html>

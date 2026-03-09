@@ -17,7 +17,13 @@
                 </p>
             </div>
             
-            <div class="mt-4 flex md:mt-0 md:ml-4">
+            <div class="mt-4 flex md:mt-0 md:ml-4 items-center space-x-4">
+                <a href="{% url 'orders:relatorio_chamados' %}" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Gerar Relatórios
+                </a>
                 <!-- Filtro Simples -->
                 <form method="GET" class="flex items-center space-x-2">
                     <label for="status" class="text-sm font-medium text-gray-700">Filtrar por Status:</label>
@@ -136,7 +142,7 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {% for order in meus_chamados %}
-                        <tr>
+                        <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.numero }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.solicitante.get_full_name|default:order.solicitante.username }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.titulo }}</td>
@@ -149,8 +155,21 @@
                                     {{ order.get_status_display }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <a href="{% url 'orders:chamado_detalhe' order.id %}" class="text-indigo-600 hover:text-indigo-900">Continuar Atendimento &rarr;</a>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end space-x-3 items-center">
+                                <a href="{% url 'orders:chamado_detalhe' order.id %}" class="text-indigo-600 hover:text-indigo-900" title="Continuar Atendimento">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </a>
+                                
+                                <a href="{% url 'orders:chamado_pdf' order.id %}" target="_blank" class="text-gray-500 hover:text-red-600" title="Baixar Laudo (PDF)">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </a>
+                                
+                                <form action="{% url 'orders:enviar_pdf_email' order.id %}" method="POST" class="inline m-0 p-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-gray-500 hover:text-green-600 bg-transparent border-none cursor-pointer" title="Enviar PDF por E-mail ao Solicitante">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         {% empty %}

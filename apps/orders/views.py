@@ -1,11 +1,14 @@
 from django.views.generic import CreateView, DetailView
 from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse, Http404
+from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse, NoReverseMatch
 from django.contrib import messages
 from .models import Chamado
 from .forms import ChamadoForm, ComentarioForm
+from apps.core.gerador_pdf import render_to_pdf
 
 
 class ChamadoCreateView(LoginRequiredMixin, CreateView):
@@ -100,7 +103,7 @@ class AdicionarComentarioView(LoginRequiredMixin, View):
                 redirect_url = reverse('orders:chamado_detail', kwargs={'pk': pk})
             except NoReverseMatch:
                 try:
-                    redirect_url = reverse('chamado_detail', kwargs={'pk': pk})
+                    redirect_url = reverse('orders:chamado_detail', kwargs={'pk': pk})
                 except NoReverseMatch:
                     redirect_url = reverse('dashboard:dashboard_user')
         
@@ -126,3 +129,103 @@ class AdicionarComentarioView(LoginRequiredMixin, View):
             messages.error(request, "Erro ao adicionar comentário. Verifique se o arquivo enviado é válido.")
             
         return redirect(redirect_url)
+
+
+class ChamadoPDFView(LoginRequiredMixin, View):
+    """ View para gerar e descarregar o PDF de um Chamado Específico """
+    def get(self, request, pk):
+        chamado = get_object_or_404(Chamado, pk=pk)
+        
+        is_staff = request.user.is_staff
+        is_owner = (chamado.solicitante == request.user)
+        is_finished = chamado.status in ['RESOLVIDO', 'CANCELADO']
+        
+        # Bloqueia clientes de ver o PDF se o chamado ainda não foi finalizado
+        if not is_staff and not (is_owner and is_finished):
+            messages.error(request, "O PDF do laudo só fica disponível após o encerramento da O.S.")
+            return redirect('dashboard:dashboard_user')
+            
+        # Proteção Multi-Tenant (Isolamento de Empresas)
+        if not is_staff and not request.user.is_superuser and getattr(request.user, 'empresa', None) != chamado.empresa:
+            raise Http404("Chamado não encontrado.")
+
+        context = {
+            'chamado': chamado,
+            'comentarios': chamado.comentarios.all(),
+            'gerado_por': request.user,
+            'data_geracao': timezone.now()
+        }
+        
+        pdf = render_to_pdf('orders/chamado_pdf.html', context)
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            # 'inline' para abrir no navegador, mude para 'attachment' para forçar download automático
+            response['Content-Disposition'] = f'inline; filename="OS_{chamado.numero}.pdf"'
+            return response
+        
+        messages.error(request, "Erro ao gerar PDF.")
+        return redirect('chamado_detail', pk=pk)
+
+
+class EnviarPDFEmailView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """ Dispara a tarefa do Celery para gerar o PDF na memória e enviar por E-mail (Apenas Técnico) """
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def post(self, request, pk):
+        chamado = get_object_or_404(Chamado, pk=pk)
+        
+        from .tasks import enviar_pdf_chamado_email_task
+        enviar_pdf_chamado_email_task.delay(chamado.id)
+        
+        messages.success(request, f"O PDF da O.S. #{chamado.numero} está a ser gerado e será enviado por e-mail para o cliente em segundo plano.")
+        return redirect('dashboard:dashboard_admin')
+
+
+class RelatorioFiltroView(LoginRequiredMixin, UserPassesTestMixin, View):
+    """ Página de Relatórios e Exportação Múltipla (Apenas Técnico/Admin) """
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request):
+        qs = Chamado.objects.all().select_related('empresa', 'solicitante', 'tecnico_atribuido', 'categoria')
+        
+        # Filtro de Segurança por Empresa do Técnico
+        if not request.user.is_superuser and getattr(request.user, 'empresa', None):
+            qs = qs.filter(empresa=request.user.empresa)
+
+        empresa_id = request.GET.get('empresa')
+        status = request.GET.get('status')
+        data_inicio = request.GET.get('data_inicio')
+        data_fim = request.GET.get('data_fim')
+
+        if request.user.is_superuser and empresa_id:
+            qs = qs.filter(empresa_id=empresa_id)
+        if status:
+            qs = qs.filter(status=status)
+        if data_inicio:
+            qs = qs.filter(aberto_em__date__gte=data_inicio)
+        if data_fim:
+            qs = qs.filter(aberto_em__date__lte=data_fim)
+
+        qs = qs.order_by('-aberto_em')
+
+        context = {
+            'chamados': qs,
+            'empresas': Empresa.objects.all() if request.user.is_superuser else None,
+            'status_choices': Chamado.STATUS_CHOICES,
+            'filtros': request.GET,
+            'total_resultados': qs.count(),
+            'data_geracao': timezone.now()
+        }
+
+        # Se o botão de Exportar for pressionado
+        if request.GET.get('export') == 'pdf':
+            pdf = render_to_pdf('orders/relatorio_pdf.html', context)
+            if pdf:
+                response = HttpResponse(pdf, content_type='application/pdf')
+                response['Content-Disposition'] = 'attachment; filename="Relatorio_Chamados.pdf"'
+                return response
+            messages.error(request, "Erro ao gerar PDF do relatório.")
+            
+        return render(request, 'orders/relatorio_filtro.html', context)
