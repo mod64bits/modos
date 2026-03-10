@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,94 +21,94 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-2*r!3#v-98kb3ca)*o(#*m47yi=w_b7om!!!=1!!7ukjusfhc#'
+SECRET_KEY = "django-insecure-2*r!3#v-98kb3ca)*o(#*m47yi=w_b7om!!!=1!!7ukjusfhc#"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 if DEBUG:
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = ["*"]
 else:
-    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split(" ")
-   
+    ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1").split(
+        " "
+    )
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     # libes
-    'tailwind',
-    'theme',
-    'django_tailwind_cli',
-    'django_extensions',
+    "tailwind",
+    "theme",
+    "django_tailwind_cli",
+    "django_extensions",
     # apps
-    'apps.accounts',
-    'apps.companies',
-    'apps.core',
-    'apps.dashboard',
-    'apps.base',
-    'apps.equipment',
-    'apps.orders.apps.OrdersConfig',
-    
+    "apps.accounts",
+    "apps.companies",
+    "apps.core",
+    "apps.dashboard",
+    "apps.base",
+    "apps.equipment",
+    "apps.orders.apps.OrdersConfig",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'modos.urls'
+ROOT_URLCONF = "modos.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
                 # CONTEXT PROCESSOR CONFIG:
-                'apps.core.context_processors.system_config',
+                "apps.core.context_processors.system_config",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'modos.wsgi.application'
+WSGI_APPLICATION = "modos.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-if os.environ.get('DATABASE') == 'postgres':
+if os.environ.get("DATABASE") == "postgres":
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('SQL_DATABASE'),
-            'USER': os.environ.get('SQL_USER'),
-            'PASSWORD': os.environ.get('SQL_PASSWORD'),
-            'HOST': os.environ.get('SQL_HOST'),
-            'PORT': os.environ.get('SQL_PORT'),
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("SQL_DATABASE"),
+            "USER": os.environ.get("SQL_USER"),
+            "PASSWORD": os.environ.get("SQL_PASSWORD"),
+            "HOST": os.environ.get("SQL_HOST"),
+            "PORT": os.environ.get("SQL_PORT"),
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 
@@ -117,16 +118,16 @@ else:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -134,8 +135,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br' # Alterado para Português do Brasil
-TIME_ZONE = 'America/Sao_Paulo' # Ajuste para seu fuso horário
+LANGUAGE_CODE = "pt-br"  # Alterado para Português do Brasil
+TIME_ZONE = "America/Sao_Paulo"  # Ajuste para seu fuso horário
 USE_I18N = True
 USE_TZ = True
 
@@ -143,37 +144,34 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Pasta onde você coloca seus arquivos estáticos durante o desenvolvimento
 # Crie a pasta "static" na raiz do projeto (mesmo nível do manage.py)
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-    BASE_DIR / "assets"
-]
+STATICFILES_DIRS = [BASE_DIR / "static", BASE_DIR / "assets"]
 
 # Pasta onde o comando 'collectstatic' reunirá os arquivos para produção
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Configuração para Upload de Arquivos (Imagens de perfil, documentos, etc)
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Configuração do Modelo de Usuário Customizado (CRUCIAL)
 # Isso diz ao Django para usar o modelo que criamos em apps/accounts/models.py
 # O formato é 'app_label.ModelName'.
 # Como seu app está em 'apps.accounts', o label geralmente é 'accounts'
-AUTH_USER_MODEL = 'accounts.Usuario' 
+AUTH_USER_MODEL = "accounts.Usuario"
 
 # Configuração de chave primária padrão
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_URL = 'login' # O nome da URL que usaremos para a página de login
-LOGIN_REDIRECT_URL = 'dashboard:dashbord_user' # Para onde ir após o login bem-sucedido
-LOGOUT_REDIRECT_URL = 'login' # Para onde ir após o logout
+LOGIN_URL = "login"  # O nome da URL que usaremos para a página de login
+LOGIN_REDIRECT_URL = "dashboard:dashbord_user"  # Para onde ir após o login bem-sucedido
+LOGOUT_REDIRECT_URL = "login"  # Para onde ir após o logout
 
 
-TAILWIND_APP_NAME = 'theme'
+TAILWIND_APP_NAME = "theme"
 
 INTERNAL_IPS = [
     "127.0.0.1",
@@ -182,19 +180,36 @@ INTERNAL_IPS = [
 
 # Configuracao pesonalizada de servidor de e-mail
 
-EMAIL_BACKEND = 'apps.core.email_backend.ConfiguracaoDBEmailBackend'
-DEFAULT_FROM_EMAIL = 'nao-responda@seusistema.com'
-CSRF_TRUSTED_ORIGINS = ['https://manager.mod64bits.online']
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+if not DEBUG:
+    # --- PRODUÇÃO (HTTPS) ---
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    CSRF_TRUSTED_ORIGINS = ["https://manager.mod64bits.online"]
+else:
+    # --- DESENVOLVIMENTO (HTTP) ---
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    # Adicione o IP que aparece no seu navegador para o Django confiar nele
+    CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://172.16.254.77:8000",  # <- Substitua pelo IP exato que você acessa
+    ]
+
+EMAIL_BACKEND = "apps.core.email_backend.ConfiguracaoDBEmailBackend"
+DEFAULT_FROM_EMAIL = "nao-responda@seusistema.com"
+# CSRF_TRUSTED_ORIGINS = ['https://manager.mod64bits.online', 'http://172.16.254.77/']
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
 
 
 # CONFIGURAÇÕES DO CELERY / REDIS
 # Aponta para o serviço "redis" na porta padrão que criaremos no Docker
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer_content;
+                left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+            }
+        }
+        body { font-family: Helvetica, sans-serif; font-size: 12px; color: #333; }
+        h1 { font-size: 20px; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; }
+        h2 { font-size: 16px; color: #4b5563; margin-top: 20px; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .info-table th { background-color: #f3f4f6; text-align: left; padding: 8px; border: 1px solid #d1d5db; width: 30%; }
+        .info-table td { padding: 8px; border: 1px solid #d1d5db; }
+        .description-box { background-color: #f9fafb; padding: 10px; border: 1px solid #d1d5db; min-height: 80px; }
+        .status-badge { font-weight: bold; color: #fff; padding: 3px 8px; border-radius: 4px; }
+        .status-RESOLVIDO { background-color: #16a34a; }
+        .status-ABERTO { background-color: #2563eb; }
+        .status-EM_ATENDIMENTO { background-color: #ca8a04; }
+        .status-CANCELADO { background-color: #6b7280; }
+        .footer { text-align: right; font-size: 10px; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <h1>Laudo Técnico - O.S. #{{ chamado.numero }}</h1>
+    
+    <table class="info-table">
+        <tr>
+            <th>Status</th>
+            <td><span class="status-badge status-{{ chamado.status }}">{{ chamado.get_status_display }}</span></td>
+        </tr>
+        <tr>
+            <th>Data de Abertura</th>
+            <td>{{ chamado.aberto_em|date:"d/m/Y H:i" }}</td>
+        </tr>
+        <tr>
+            <th>Solicitante</th>
+            <td>{{ chamado.solicitante.get_full_name|default:chamado.solicitante.username }} ({{ chamado.empresa.nome }})</td>
+        </tr>
+        <tr>
+            <th>Equipamento</th>
+            <td>{{ chamado.equipamento.nome|default:"Não vinculado" }} {{ chamado.equipamento.serial|default:"" }}</td>
+        </tr>
+        <tr>
+            <th>Técnico Responsável</th>
+            <td>{{ chamado.tecnico_atribuido.get_full_name|default:"Aguardando Atribuição" }}</td>
+        </tr>
+        {% if chamado.fechado_em %}
+        <tr>
+            <th>Data de Encerramento</th>
+            <td>{{ chamado.fechado_em|date:"d/m/Y H:i" }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <h2>Motivo / Descrição do Problema</h2>
+    <div class="description-box">
+        <strong>{{ chamado.titulo }}</strong><br><br>
+        {{ chamado.descricao|linebreaksbr }}
+    </div>
+
+    {% if chamado.status == 'RESOLVIDO' or chamado.status == 'CANCELADO' %}
+    <h2>Laudo / Parecer Técnico Final</h2>
+    <div class="description-box">
+        {{ chamado.relatorio_tecnico|default:"Nenhum laudo registrado pelo técnico."|linebreaksbr }}
+    </div>
+    {% endif %}
+
+    <div id="footer_content" class="footer">
+        Gerado por {{ gerado_por }} em {{ data_geracao|date:"d/m/Y H:i" }} - Página <pdf:pagenumber> de <pdf:pagecount>
+    </div>
+</body>
+</html>
