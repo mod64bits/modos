@@ -46,4 +46,4 @@ urllib3==2.6.3
 Werkzeug==3.1.5
 celery==5.4.0
 redis==5.0.3
-xhtml2pdf
+xhtml2pdf==0.2.11
