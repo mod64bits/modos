@@ -27,6 +27,17 @@ class Usuario(AbstractUser):
     )
 
     cargo = models.CharField("Cargo", max_length=100, blank=True)
+    is_tecnico = models.BooleanField(
+        "É Técnico?",
+        default=False,
+        help_text="Designa se este utilizador é um técnico de atendimento."
+    )
+    empresas_atendidas = models.ManyToManyField(
+        'companies.empresa',  # Substitua por 'companies.Empresa' se estiver em outro app
+        blank=True,
+        related_name='tecnicos_atribuidos',
+        help_text="Selecione quais empresas este técnico pode visualizar e atender."
+    )
 
     # CORREÇÃO DOS ERROS DE CLASH (Conflito)
     # Redefinimos os campos com related_name personalizados para evitar conflito com auth.User
