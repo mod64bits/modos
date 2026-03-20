@@ -13,9 +13,15 @@
                 </h2>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4">
-                <a href="{% url 'dashboard:dashbord_user' %}" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                {% if user.is_staff %}
+                <a href="{% url 'dashboard:dashboard_admin' %}" class="text-indigo-600 hover:text-indigo-900 font-medium">
+                    &larr; Voltar ao Painel
+                </a>
+                {% else %}
+                <a href="{% url 'dashboard:dashboard_user' %}" class="text-indigo-600 hover:text-indigo-900 font-medium">
                     &larr; Voltar ao Dashboard
                 </a>
+                {% endif %}
             </div>
         </div>
 
@@ -23,84 +29,81 @@
             <div class="px-4 py-5 sm:p-6">
                 <form method="post" action=".">
                     {% csrf_token %}
-                    
+
                     {% if form.non_field_errors %}
                         <div class="rounded-md bg-red-50 p-4 mb-4">
                             <div class="flex">
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-red-800">Erros no formulário:</h3>
-                                    <div class="mt-2 text-sm text-red-700">
-                                        {{ form.non_field_errors }}
-                                    </div>
+                                    <div class="mt-2 text-sm text-red-700">{{ form.non_field_errors }}</div>
                                 </div>
                             </div>
                         </div>
                     {% endif %}
 
                     <div class="grid grid-cols-6 gap-6">
-                        
-                        <!-- Título -->
+
+                        <!-- NOVOS CAMPOS EXCLUSIVOS PARA EQUIPE TÉCNICA -->
+                        {% if form.empresa %}
+                        <div class="col-span-6 sm:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">Empresa (Cliente)</label>
+                            {{ form.empresa }}
+                            {% if form.empresa.errors %}<p class="mt-2 text-sm text-red-600">{{ form.empresa.errors.0 }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if form.solicitante %}
+                        <div class="col-span-6 sm:col-span-3">
+                            <label class="block text-sm font-medium text-gray-700">Solicitante</label>
+                            {{ form.solicitante }}
+                            {% if form.solicitante.errors %}<p class="mt-2 text-sm text-red-600">{{ form.solicitante.errors.0 }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+
                         <div class="col-span-6">
-                            <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700">Assunto / Título</label>
+                            <label class="block text-sm font-medium text-gray-700">Assunto / Título</label>
                             {{ form.titulo }}
-                            {% if form.titulo.errors %}
-                                <p class="mt-2 text-sm text-red-600">{{ form.titulo.errors.0 }}</p>
-                            {% endif %}
+                            {% if form.titulo.errors %}<p class="mt-2 text-sm text-red-600">{{ form.titulo.errors.0 }}</p>{% endif %}
                         </div>
 
-                        <!-- Tipo e Prioridade -->
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="{{ form.tipo.id_for_label }}" class="block text-sm font-medium text-gray-700">Tipo de Solicitação</label>
+                            <label class="block text-sm font-medium text-gray-700">Tipo de Solicitação</label>
                             {{ form.tipo }}
                         </div>
 
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="{{ form.prioridade.id_for_label }}" class="block text-sm font-medium text-gray-700">Prioridade</label>
+                            <label class="block text-sm font-medium text-gray-700">Prioridade</label>
                             {{ form.prioridade }}
                         </div>
 
-                        <!-- Categoria e Setor -->
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="{{ form.categoria.id_for_label }}" class="block text-sm font-medium text-gray-700">Categoria</label>
+                            <label class="block text-sm font-medium text-gray-700">Categoria</label>
                             {{ form.categoria }}
                         </div>
 
                         <div class="col-span-6 sm:col-span-3">
-                            <label for="{{ form.setor.id_for_label }}" class="block text-sm font-medium text-gray-700">Setor Envolvido</label>
+                            <label class="block text-sm font-medium text-gray-700">Setor Envolvido</label>
                             {{ form.setor }}
                         </div>
 
-                        <!-- Equipamento -->
                         <div class="col-span-6">
-                            <label for="{{ form.equipamento.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                Equipamento Relacionado (Opcional)
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700">Equipamento Relacionado (Opcional)</label>
                             {{ form.equipamento }}
-                            <p class="mt-1 text-xs text-gray-500">Selecione apenas se o problema for num equipamento específico.</p>
                         </div>
 
-                        <!-- Descrição -->
                         <div class="col-span-6">
-                            <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700">
-                                Descrição Detalhada
-                            </label>
-                            <div class="mt-1">
-                                {{ form.descricao }}
-                            </div>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Explique o que aconteceu, mensagens de erro, etc.
-                            </p>
+                            <label class="block text-sm font-medium text-gray-700">Descrição Detalhada</label>
+                            <div class="mt-1">{{ form.descricao }}</div>
                         </div>
-
                     </div>
 
                     <div class="mt-6 flex justify-end">
-                        <a href="{% url 'dashboard:dashbord_user' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            Abrir Chamado
-                        </button>
+                        {% if user.is_staff %}
+                        <a href="{% url 'dashboard:dashboard_admin' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3">Cancelar</a>
+                        {% else %}
+                        <a href="{% url 'dashboard:dashboard_user' %}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3">Cancelar</a>
+                        {% endif %}
+                        <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Abrir Chamado</button>
                     </div>
                 </form>
             </div>
