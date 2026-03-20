@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="mb-8 flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-gray-900">{{ titulo }}</h2>
+            <a href="javascript:history.back()" class="text-indigo-600 hover:text-indigo-900 font-medium">&larr; Voltar para a Lista</a>
+        </div>
+
+        <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
+                        {% for field in form %}
+                        <div class="{% if field.name == 'descricao' %}sm:col-span-2{% else %}sm:col-span-1{% endif %}">
+                            <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-8 flex justify-end bg-gray-50 -mx-4 -mb-5 px-4 py-4 sm:-mx-6 sm:-mb-6 sm:px-6 border-t border-gray-200">
+                        <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Salvar Registo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
