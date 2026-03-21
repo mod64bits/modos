@@ -3,10 +3,10 @@ from django.views.generic import TemplateView
 from django.db.models import Count
 from django.views import View
 from django.contrib import messages
-from apps.orders.models import Chamado
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from apps.orders.models import Chamado  # Certifique-se que o import está correto para o seu app
+from apps.orders.models import Chamado
 
 
 
@@ -37,9 +37,13 @@ class DashboardUserView(LoginRequiredMixin, TemplateView):
         # Filtra os querysets
         # order_open: Lista dos objetos (para fazer um {% for order in order_open %} no template)
         context['order_open'] = qs.filter(status__in=status_open_list).order_by('-aberto_em')
-        
+
+        historico_qs = qs.filter(status__in=status_close_list).order_by('-fechado_em')
+        paginator = Paginator(historico_qs, 10)
+        page_number = self.request.GET.get('page')
+
         # order_close: Lista dos objetos fechados
-        context['order_close'] = qs.filter(status__in=status_close_list).order_by('-fechado_em')
+        context['order_close'] = paginator.get_page(page_number)
         
         # Opcional: Contadores para exibir em cards (ex: "Você tem 3 chamados abertos")
         context['count_open'] = qs.filter(status__in=status_open_list).count()
