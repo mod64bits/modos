@@ -4,61 +4,108 @@
     <meta charset="UTF-8">
     <style>
         @page {
-            size: A4 landscape; /* Paisagem para caber mais colunas */
-            margin: 1cm;
+            size: A4 portrait; /* Retrato para facilitar a leitura de textos longos */
+            margin: 1.5cm;
+            margin-bottom: 2.5cm; /* Garante que o conteúdo pare antes de invadir o rodapé */
             @frame footer_frame {
                 -pdf-frame-content: footer_content;
-                left: 50pt; width: 742pt; top: 570pt; height: 20pt;
+                left: 50pt; width: 512pt; bottom: 30pt; height: 20pt;
             }
         }
         body { font-family: Helvetica, sans-serif; font-size: 11px; color: #333; }
-        h1 { font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 20px; }
-        .data-table { width: 100%; border-collapse: collapse; }
-        .data-table th { background-color: #1e3a8a; color: white; text-align: left; padding: 6px; border: 1px solid #d1d5db; }
-        .data-table td { padding: 6px; border: 1px solid #d1d5db; }
-        .row-even { background-color: #f9fafb; }
+        h1.main-title { font-size: 18px; color: #1e3a8a; border-bottom: 2px solid #1e3a8a; padding-bottom: 5px; margin-bottom: 10px; }
+        .filtros { font-size: 10px; color: #6b7280; margin-bottom: 20px; }
+
+        /* Estilos do Bloco de Cada Chamado */
+        .ticket-container { margin-bottom: 30px; border: 1px solid #d1d5db; background-color: #ffffff; }
+        .ticket-header { background-color: #f3f4f6; padding: 8px; font-size: 13px; font-weight: bold; color: #1f2937; border-bottom: 1px solid #d1d5db; }
+
+        .info-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .info-table th { text-align: left; padding: 4px 8px; border-bottom: 1px solid #e5e7eb; background-color: #f9fafb; width: 15%; color: #4b5563;}
+        .info-table td { padding: 4px 8px; border-bottom: 1px solid #e5e7eb; width: 35%; }
+
+        .section-title { font-size: 11px; font-weight: bold; color: #4b5563; margin-top: 10px; margin-left: 8px; margin-bottom: 4px; text-transform: uppercase;}
+        .text-box { background-color: #f9fafb; padding: 8px; border: 1px solid #e5e7eb; font-size: 10px; margin: 0 8px 10px 8px; }
+
+        /* Estilos das Mensagens */
+        .comments-wrapper { margin: 0 8px 10px 8px; }
+        .comment-item { border-left: 3px solid #6366f1; padding-left: 8px; margin-bottom: 8px; font-size: 10px; }
+        .comment-item.tech { border-left-color: #10b981; background-color: #f0fdf4; padding: 6px 8px; }
+        .comment-header { font-weight: bold; color: #374151; margin-bottom: 2px; }
+        .comment-date { color: #6b7280; font-size: 9px; font-weight: normal; }
+        .comment-body { margin-top: 2px; color: #4b5563; }
+
         .footer { text-align: right; font-size: 10px; color: #9ca3af; }
     </style>
 </head>
 <body>
-    <h1>Relatório Gerencial de O.S.</h1>
-    
-    <p><strong>Filtros aplicados:</strong> 
-        Empresa: {% if filtros.empresa %}Filtro Ativo{% else %}Todas{% endif %} | 
+    <h1 class="main-title">Relatório Detalhado de O.S.</h1>
+
+    <div class="filtros">
+        <strong>Filtros aplicados:</strong>
+        Empresa: {% if filtros.empresa %}Ativo{% else %}Todas{% endif %} |
         Status: {{ filtros.status|default:"Todos" }} |
         Período: {{ filtros.data_inicio|default:"Início" }} até {{ filtros.data_fim|default:"Hoje" }}
-    </p>
+    </div>
 
-    <table class="data-table">
-        <thead>
+    {% for order in chamados %}
+    <div class="ticket-container">
+        <div class="ticket-header">
+            O.S. #{{ order.numero }} - {{ order.titulo }}
+        </div>
+
+        <table class="info-table">
             <tr>
-                <th>Protocolo</th>
-                <th>Data</th>
-                <th>Empresa</th>
-                <th>Solicitante</th>
-                <th>Assunto</th>
-                <th>Status</th>
-                <th>Técnico</th>
+                <th>Status:</th>
+                <td><strong>{{ order.get_status_display }}</strong></td>
+                <th>Prioridade:</th>
+                <td>{{ order.get_prioridade_display }}</td>
             </tr>
-        </thead>
-        <tbody>
-            {% for order in chamados %}
-            <tr class="{% cycle 'row-even' '' %}">
-                <td>#{{ order.numero }}</td>
-                <td>{{ order.aberto_em|date:"d/m/Y" }}</td>
-                <td>{{ order.empresa.nome|truncatechars:15 }}</td>
-                <td>{{ order.solicitante.username }}</td>
-                <td>{{ order.titulo|truncatechars:35 }}</td>
-                <td>{{ order.get_status_display }}</td>
-                <td>{{ order.tecnico_atribuido.username|default:"--" }}</td>
-            </tr>
-            {% empty %}
             <tr>
-                <td colspan="7" style="text-align: center;">Nenhum chamado encontrado para os filtros selecionados.</td>
+                <th>Abertura:</th>
+                <td>{{ order.aberto_em|date:"d/m/Y H:i" }}</td>
+                <th>Fechamento:</th>
+                <td>{{ order.fechado_em|date:"d/m/Y H:i"|default:"--" }}</td>
             </tr>
+            <tr>
+                <th>Solicitante:</th>
+                <td>{{ order.solicitante.get_full_name|default:order.solicitante.username }} ({{ order.empresa.nome }})</td>
+                <th>Técnico:</th>
+                <td>{{ order.tecnico_atribuido.get_full_name|default:"Não atribuído" }}</td>
+            </tr>
+        </table>
+
+        <div class="section-title">Descrição do Problema</div>
+        <div class="text-box">
+            {{ order.descricao|linebreaksbr }}
+        </div>
+
+        {% if order.comentarios.all %}
+        <div class="section-title">Histórico de Mensagens / Interações</div>
+        <div class="comments-wrapper">
+            {% for comentario in order.comentarios.all %}
+            <div class="comment-item {% if comentario.autor.is_staff %}tech{% endif %}">
+                <div class="comment-header">
+                    {{ comentario.autor.get_full_name|default:comentario.autor.username }}
+                    {% if comentario.autor.is_staff %}(Técnico){% else %}(Cliente){% endif %}
+                    <span class="comment-date">em {{ comentario.criado_em|date:"d/m/Y \à\s H:i" }}</span>
+                </div>
+                <div class="comment-body">{{ comentario.texto|linebreaksbr }}</div>
+            </div>
             {% endfor %}
-        </tbody>
-    </table>
+        </div>
+        {% endif %}
+
+        {% if order.status == 'RESOLVIDO' or order.status == 'CANCELADO' %}
+        <div class="section-title">Laudo Técnico Final</div>
+        <div class="text-box" style="background-color: #f0fdf4; border-color: #a7f3d0;">
+            {{ order.relatorio_tecnico|default:"Nenhum laudo registrado pelo técnico."|linebreaksbr }}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="text-align: center; color: #6b7280; padding: 20px;">Nenhum chamado encontrado para os filtros selecionados.</p>
+    {% endfor %}
 
     <div id="footer_content" class="footer">
         Relatório gerado em {{ data_geracao|date:"d/m/Y H:i" }} - Página <pdf:pagenumber> de <pdf:pagecount>
