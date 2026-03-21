@@ -99,7 +99,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.numero }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.titulo }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     {% if order.status == 'ABERTO' %}bg-blue-100 text-blue-800
                                     {% elif order.status == 'EM_ATENDIMENTO' %}bg-yellow-100 text-yellow-800
                                     {% elif order.status == 'AGUARDANDO_PECA' %}bg-red-100 text-red-800
@@ -150,7 +150,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#{{ order.numero }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.titulo }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     {% if order.status == 'RESOLVIDO' %}bg-green-100 text-green-800
                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {{ order.get_status_display }}
@@ -160,7 +160,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.tecnico_atribuido.first_name|default:"--" }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <a href="{% url 'orders:chamado_detalhe' order.id %}" class="text-indigo-600 hover:text-indigo-900 mr-3">Detalhes</a>
-                                
+
                                 <a href="{% url 'orders:chamado_pdf' order.id %}" target="_blank" class="text-red-600 hover:text-red-900 inline-flex items-center" title="Baixar Laudo PDF">
                                     <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -177,6 +177,69 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Navegação da Paginação -->
+            {% if order_close.has_other_pages %}
+            <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6 flex items-center justify-between rounded-b-lg">
+
+                <!-- Versão Mobile (Simplificada) -->
+                <div class="flex items-center justify-between sm:hidden w-full">
+                    {% if order_close.has_previous %}
+                        <a href="?page={{ order_close.previous_page_number }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Anterior</a>
+                    {% else %}
+                        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">Anterior</span>
+                    {% endif %}
+
+                    {% if order_close.has_next %}
+                        <a href="?page={{ order_close.next_page_number }}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Próxima</a>
+                    {% else %}
+                        <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-300 bg-gray-50 cursor-not-allowed">Próxima</span>
+                    {% endif %}
+                </div>
+
+                <!-- Versão Desktop (Completa) -->
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">
+                            Mostrando <span class="font-medium">{{ order_close.start_index }}</span> até <span class="font-medium">{{ order_close.end_index }}</span> de <span class="font-medium">{{ order_close.paginator.count }}</span> chamados
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <!-- Botão Anterior -->
+                            {% if order_close.has_previous %}
+                            <a href="?page={{ order_close.previous_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Anterior</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                            {% endif %}
+
+                            <!-- Números das Páginas -->
+                            {% for i in order_close.paginator.page_range %}
+                                {% if order_close.number == i %}
+                                    <span aria-current="page" class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium">{{ i }}</span>
+                                {% else %}
+                                    <a href="?page={{ i }}" class="bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium">{{ i }}</a>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Botão Próxima -->
+                            {% if order_close.has_next %}
+                            <a href="?page={{ order_close.next_page_number }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Próximo</span>
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 </div>

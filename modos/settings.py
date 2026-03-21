@@ -167,7 +167,7 @@ AUTH_USER_MODEL = "accounts.Usuario"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "login"  # O nome da URL que usaremos para a página de login
-LOGIN_REDIRECT_URL = "dashboard:dashbord_user"  # Para onde ir após o login bem-sucedido
+LOGIN_REDIRECT_URL = "dashboard:dashboard_user"  # Para onde ir após o login bem-sucedido
 LOGOUT_REDIRECT_URL = "login"  # Para onde ir após o logout
 
 

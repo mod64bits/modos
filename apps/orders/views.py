@@ -23,7 +23,7 @@ class ChamadoCreateView(LoginRequiredMixin, CreateView):
     form_class = ChamadoForm
     template_name = "orders/chamado_form.html"
     # Ajuste 'dashboard' para o nome da rota da sua DashboardUserView no urls.py
-    success_url = reverse_lazy("dashboard:dashbord_user")
+    success_url = reverse_lazy("dashboard:dashboard_user")
 
     def get_form_kwargs(self):
         """Passa o usuário logado para o formulário (para filtrar equipamentos)"""
@@ -97,7 +97,7 @@ class ChamadoCancelView(LoginRequiredMixin, View):
             )
 
         # Redireciona de volta para o Dashboard
-        return redirect("dashboard:dashbord_user")
+        return redirect("dashboard:dashboard_user")
 
 
 class AdicionarComentarioView(LoginRequiredMixin, View):
