@@ -7,13 +7,14 @@ from apps.dashboard import urls as dashboard_urls
 from apps.orders import urls as chamados_urls
 from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
-
+from apps.orcamentos import urls as orcamentos_urls
 
 urlpatterns = [
     # path("", TemplateView.as_view(template_name="base/base.html")),
     path("", include(dashboard_urls)),
     path("chamados", include(chamados_urls)),
     # path('orders/', include('apps.orders.urls')),  # Isso resolve o erro 'chamado_detail'
+    path('orcamentos/', include(orcamentos_urls)),
     path("admin/", admin.site.urls),
     path(
         "login/",
