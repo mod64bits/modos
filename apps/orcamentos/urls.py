@@ -4,7 +4,9 @@ from .views import (
     OrcamentoCreateView,
     OrcamentoDetailView,
     deletar_item_orcamento,
-    api_detalhes_produto
+    api_detalhes_produto,
+    ProdutoListView,
+    ProdutoCreateView
 )
 
 app_name = "orcamentos"
@@ -17,4 +19,6 @@ urlpatterns = [
     # Ações Extras
     path('item/<uuid:pk>/deletar/', deletar_item_orcamento, name='deletar_item_orcamento'),
     path('api/produto/<uuid:pk>/', api_detalhes_produto, name='api_detalhes_produto'),
+    path('produtos/', ProdutoListView.as_view(), name='produto_list'),
+    path('produtos/novo/', ProdutoCreateView.as_view(), name='produto_create'),
 ]

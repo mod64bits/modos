@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 
 from .models import Orcamento, ItemProdutoOrcamento, Produto
-from .forms import OrcamentoForm, ItemOrcamentoForm
+from .forms import OrcamentoForm, ItemOrcamentoForm, ProdutoForm
 
 
 class OrcamentoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
@@ -57,7 +57,7 @@ class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         else:
             messages.error(request, "Erro ao adicionar produto. Verifique os dados.")
 
-        return redirect('orcamento_detail', pk=self.object.pk)
+        return redirect('orcamentos:orcamento_detail', pk=self.object.pk)
 
 
 def deletar_item_orcamento(request, pk):
@@ -69,7 +69,7 @@ def deletar_item_orcamento(request, pk):
     orcamento_id = item.orcamento.id
     item.delete()  # Dispara o signal e reduz o total
     messages.success(request, "Item removido com sucesso.")
-    return redirect('orcamento_detail', pk=orcamento_id)
+    return redirect('orcamentos:orcamento_detail', pk=orcamento_id)
 
 
 def api_detalhes_produto(request, pk):
@@ -83,3 +83,27 @@ def api_detalhes_produto(request, pk):
         'nome': produto.nome,
         'valor_compra': str(produto.valor_compra)
     })
+
+
+class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Produto
+    template_name = 'orcamentos/produto_list.html'
+    context_object_name = 'produtos'
+
+    def test_func(self):
+        # Somente administradores gerais podem ver o catálogo de produtos e os preços base
+        return self.request.user.is_superuser
+
+class ProdutoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    model = Produto
+    form_class = ProdutoForm
+    template_name = 'orcamentos/produto_form.html'
+    success_url = reverse_lazy('orcamentos:produto_list')
+
+    def test_func(self):
+        # Somente administradores gerais podem adicionar novos produtos
+        return self.request.user.is_superuser
+
+    def form_valid(self, form):
+        messages.success(self.request, "Produto cadastrado no catálogo com sucesso!")
+        return super().form_valid(form)

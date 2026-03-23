@@ -39,3 +39,17 @@ class ItemOrcamentoForm(forms.ModelForm):
             'quantidade': forms.NumberInput(attrs=default_attrs),
             'porcentagem_markup': forms.NumberInput(attrs=default_attrs),
         }
+
+
+class ProdutoForm(forms.ModelForm):
+    class Meta:
+        model = Produto
+        fields = ['nome', 'fabricante', 'modelo', 'descricao', 'valor_compra', 'link_produto']
+        widgets = {
+            'nome': forms.TextInput(attrs=default_attrs),
+            'fabricante': forms.TextInput(attrs=default_attrs),
+            'modelo': forms.TextInput(attrs=default_attrs),
+            'descricao': forms.Textarea(attrs={'class': default_attrs['class'], 'rows': 3}),
+            'valor_compra': forms.NumberInput(attrs=default_attrs),
+            'link_produto': forms.URLInput(attrs=default_attrs),
+        }

@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Cadastrar Produto{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="mb-8 flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Novo Produto Base</h2>
+                <p class="text-sm text-gray-500 mt-1">Cadastre um equipamento ou software para utilizá-lo nos orçamentos.</p>
+            </div>
+            <a href="{% url 'orcamentos:produto_list' %}" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm">
+                &larr; Voltar ao Catálogo
+            </a>
+        </div>
+
+        <div class="bg-white shadow sm:rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:p-6">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8">
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.nome.label }}</label>
+                            {{ form.nome }}
+                            {% if form.nome.errors %}<p class="mt-1 text-sm text-red-600">{{ form.nome.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.fabricante.label }}</label>
+                            {{ form.fabricante }}
+                            {% if form.fabricante.errors %}<p class="mt-1 text-sm text-red-600">{{ form.fabricante.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.modelo.label }}</label>
+                            {{ form.modelo }}
+                            {% if form.modelo.errors %}<p class="mt-1 text-sm text-red-600">{{ form.modelo.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.valor_compra.label }}</label>
+                            <div class="mt-1 relative rounded-md shadow-sm">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500 sm:text-sm">R$</span>
+                                </div>
+                                {{ form.valor_compra }}
+                            </div>
+                            {% if form.valor_compra.errors %}<p class="mt-1 text-sm text-red-600">{{ form.valor_compra.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="sm:col-span-1">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.link_produto.label }}</label>
+                            {{ form.link_produto }}
+                            {% if form.link_produto.help_text %}<p class="mt-1 text-xs text-gray-500">{{ form.link_produto.help_text }}</p>{% endif %}
+                            {% if form.link_produto.errors %}<p class="mt-1 text-sm text-red-600">{{ form.link_produto.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700">{{ form.descricao.label }}</label>
+                            {{ form.descricao }}
+                            {% if form.descricao.errors %}<p class="mt-1 text-sm text-red-600">{{ form.descricao.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-gray-200 pt-5 flex justify-end">
+                        <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+                            Salvar Produto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Pequeno script para alinhar o "R$" -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputValor = document.getElementById('id_valor_compra');
+        if(inputValor) inputValor.classList.add('pl-10');
+    });
+</script>
+{% endblock %}
