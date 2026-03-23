@@ -9,7 +9,7 @@
 
         <div class="mb-6 flex items-center justify-between">
             <div>
-                <a href="{% url 'orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium mb-2 inline-block">&larr; Voltar para Orçamentos</a>
+                <a href="{% url 'orcamentos:orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium mb-2 inline-block">&larr; Voltar para Orçamentos</a>
                 <h1 class="text-3xl font-bold text-gray-900">Orçamento #{{ orcamento.numero }}</h1>
                 <p class="text-sm text-gray-500">Cliente: {{ orcamento.nome_cliente }} | Validade: {{ orcamento.validade|date:"d/m/Y" }}</p>
             </div>
@@ -86,63 +86,60 @@
 <!-- ============================================== -->
 <!-- DIALOG / MODAL: ADICIONAR PRODUTO AO ORÇAMENTO -->
 <!-- ============================================== -->
-<div id="modalProduto" class="hidden fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+<div id="modalProduto" class="hidden fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-0" aria-labelledby="modal-title" role="dialog" aria-modal="true">
 
-        <!-- Fundo Escuro -->
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProduto').classList.add('hidden')"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <!-- Fundo Escuro -->
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProduto').classList.add('hidden')"></div>
 
-        <!-- Painel do Modal -->
-        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Adicionar Produto</h3>
+    <!-- Painel do Modal -->
+    <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Adicionar Produto</h3>
 
-            <form method="POST">
-                {% csrf_token %}
-                <div class="space-y-4">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Produto Base</label>
+                    {{ item_form.produto }}
+                </div>
+
+                <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
+                    <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
+                    <span class="text-sm text-blue-900 font-bold">R$ <span id="display_compra">0.00</span></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Produto Base</label>
-                        {{ item_form.produto }}
+                        <label class="block text-sm font-medium text-gray-700">Quantidade</label>
+                        {{ item_form.quantidade }}
                     </div>
-
-                    <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
-                        <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
-                        <span class="text-sm text-blue-900 font-bold">R$ <span id="display_compra">0.00</span></span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Quantidade</label>
-                            {{ item_form.quantidade }}
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Margem (Markup %)</label>
-                            {{ item_form.porcentagem_markup }}
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
-                        <div class="flex justify-between mb-2">
-                            <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
-                            <span class="text-sm font-bold text-gray-900">R$ <span id="display_venda">0.00</span></span>
-                        </div>
-                        <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
-                            <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
-                            <span class="text-lg font-bold text-indigo-600">R$ <span id="display_total">0.00</span></span>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Margem (Markup %)</label>
+                        {{ item_form.porcentagem_markup }}
                     </div>
                 </div>
 
-                <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
-                    <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-                        Confirmar e Adicionar
-                    </button>
-                    <button type="button" onclick="document.getElementById('modalProduto').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
-                        Cancelar
-                    </button>
+                <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
+                        <span class="text-sm font-bold text-gray-900">R$ <span id="display_venda">0.00</span></span>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                        <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
+                        <span class="text-lg font-bold text-indigo-600">R$ <span id="display_total">0.00</span></span>
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                    Confirmar e Adicionar
+                </button>
+                <button type="button" onclick="document.getElementById('modalProduto').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

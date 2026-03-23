@@ -49,18 +49,22 @@ class Orcamento(models.Model):
     descricao_geral = models.TextField("Descrição Geral do Serviço",
                                        help_text="Explique o escopo do projeto ou manutenção.")
 
-    # Entradas Manuais
-    total_mao_de_obra = models.DecimalField("Total Mão de Obra (R$)", max_digits=10, decimal_places=2, default=0.00)
-    total_insumos = models.DecimalField("Total Insumos/Gastos (R$)", max_digits=10, decimal_places=2, default=0.00,
+    # Entradas Manuais (Alterado 0.00 para Decimal('0.00'))
+    total_mao_de_obra = models.DecimalField("Total Mão de Obra (R$)", max_digits=10, decimal_places=2,
+                                            default=Decimal('0.00'))
+    total_insumos = models.DecimalField("Total Insumos/Gastos (R$)", max_digits=10, decimal_places=2,
+                                        default=Decimal('0.00'),
                                         help_text="Gastos com deslocamento, pedágio, alimentação, etc.")
 
     # Campos Calculados Automaticamente (ReadOnly)
-    total_produtos_compra = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
-    total_produtos_venda = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
-    valor_total_orcamento = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
-    lucro_equipamentos = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
-    lucro_total_bruto = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
-    lucro_total_liquido = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, editable=False)
+    total_produtos_compra = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'),
+                                                editable=False)
+    total_produtos_venda = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), editable=False)
+    valor_total_orcamento = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'),
+                                                editable=False)
+    lucro_equipamentos = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), editable=False)
+    lucro_total_bruto = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), editable=False)
+    lucro_total_liquido = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), editable=False)
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -81,11 +85,17 @@ class Orcamento(models.Model):
             last = Orcamento.objects.all().order_by('numero').last()
             self.numero = (last.numero + 1) if last else 5000
 
+        # Converte tudo explicitamente para Decimal para evitar o erro TypeError (Float + Decimal)
+        venda = Decimal(str(self.total_produtos_venda or '0.00'))
+        compra = Decimal(str(self.total_produtos_compra or '0.00'))
+        mao_de_obra = Decimal(str(self.total_mao_de_obra or '0.00'))
+        insumos = Decimal(str(self.total_insumos or '0.00'))
+
         # Cálculos Financeiros Base
-        self.valor_total_orcamento = self.total_produtos_venda + self.total_mao_de_obra
-        self.lucro_equipamentos = self.total_produtos_venda - self.total_produtos_compra
-        self.lucro_total_bruto = self.lucro_equipamentos + self.total_mao_de_obra
-        self.lucro_total_liquido = self.lucro_total_bruto - self.total_insumos
+        self.valor_total_orcamento = venda + mao_de_obra
+        self.lucro_equipamentos = venda - compra
+        self.lucro_total_bruto = self.lucro_equipamentos + mao_de_obra
+        self.lucro_total_liquido = self.lucro_total_bruto - insumos
 
         super().save(*args, **kwargs)
 
