@@ -1,21 +1,50 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, DetailView, UpdateView
+from django.views.generic import ListView, CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db.models import Q
+from decimal import Decimal, InvalidOperation
 
 from .models import Orcamento, ItemProdutoOrcamento, Produto
 from .forms import OrcamentoForm, ItemOrcamentoForm, ProdutoForm
 
 
+# ==========================================
+# VIEWS PRINCIPAIS DE ORÇAMENTOS
+# ==========================================
+
 class OrcamentoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Orcamento
     template_name = 'orcamentos/orcamento_list.html'
     context_object_name = 'orcamentos'
+    paginate_by = 25  # Define a paginação para exibir 25 resultados por página
 
     def test_func(self):
         return self.request.user.is_staff
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+
+        # 1. Pega nos parâmetros que vêm pela URL (?q=...&status=...)
+        query = self.request.GET.get('q')
+        status_filter = self.request.GET.get('status')
+
+        # 2. Aplica o filtro de Texto (Busca por Número, Nome Avulso ou Empresa)
+        if query:
+            qs = qs.filter(
+                Q(numero__icontains=query) |
+                Q(cliente_avulso_nome__icontains=query) |
+                Q(empresa__nome__icontains=query)
+            )
+
+        # 3. Aplica o filtro de Status (Se algum for selecionado no dropdown)
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        # 4. Ordena do mais recente para o mais antigo
+        return qs.order_by('-criado_em')
 
 
 class OrcamentoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
@@ -27,7 +56,12 @@ class OrcamentoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.request.user.is_staff
 
     def get_success_url(self):
+        # Redireciona logo para a página de detalhes para adicionar produtos
         return reverse_lazy('orcamentos:orcamento_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, "Orçamento criado! Agora adicione os produtos/serviços.")
+        return super().form_valid(form)
 
 
 class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -40,36 +74,61 @@ class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        # Envia o formulário vazio de adição de itens para o Modal
         ctx['item_form'] = ItemOrcamentoForm()
         ctx['itens'] = self.object.itens.all()
-        ctx['status_choices'] = Orcamento.STATUS_CHOICES  # NOVO: Envia as opções de status para o modal
+        # Envia as opções de status para o Modal de alteração de status
+        ctx['status_choices'] = Orcamento.STATUS_CHOICES
         return ctx
 
     def post(self, request, *args, **kwargs):
-        """ Adiciona um novo Item ao Orçamento ao submeter o Modal """
+        """ Método acionado quando o formulário de ADICIONAR PRODUTO (Modal) é submetido """
         self.object = self.get_object()
         form = ItemOrcamentoForm(request.POST)
 
         if form.is_valid():
             item = form.save(commit=False)
             item.orcamento = self.object
-            item.save()  # Isso dispara o signal que atualiza os totais automaticamente
-            messages.success(request, "Produto adicionado com sucesso!")
-        else:
-            messages.error(request, "Erro ao adicionar produto. Verifique os dados.")
+            item.save()  # O signal fará o recálculo dos totais automaticamente
+            messages.success(request, "Produto adicionado ao orçamento!")
+            return redirect('orcamentos:orcamento_detail', pk=self.object.pk)
 
-        return redirect('orcamentos:orcamento_detail', pk=self.object.pk)
+        # Se houver erro, re-renderiza a página com as mensagens de erro
+        ctx = self.get_context_data()
+        ctx['item_form'] = form
+        messages.error(request, "Erro ao adicionar produto. Verifique os dados.")
+        return self.render_to_response(ctx)
+
+
+# ==========================================
+# VIEWS DE AÇÕES RÁPIDAS (MODAIS)
+# ==========================================
+
+def atualizar_status_orcamento(request, pk):
+    """ View para atualizar rapidamente o status do orçamento via Modal """
+    if not request.user.is_staff:
+        return JsonResponse({'erro': 'Acesso negado'}, status=403)
+
+    orcamento = get_object_or_404(Orcamento, pk=pk)
+
+    if request.method == 'POST':
+        novo_status = request.POST.get('status')
+        if novo_status:
+            orcamento.status = novo_status
+            orcamento.save()
+            messages.success(request, "Status do orçamento atualizado com sucesso!")
+
+    return redirect('orcamentos:orcamento_detail', pk=pk)
 
 
 def deletar_item_orcamento(request, pk):
-    """ View para remover um produto do orçamento """
+    """ View para remover um produto do orçamento via Modal """
     if not request.user.is_staff:
         return JsonResponse({'erro': 'Acesso negado'}, status=403)
 
     item = get_object_or_404(ItemProdutoOrcamento, pk=pk)
     orcamento_id = item.orcamento.id
 
-    # Adicionamos segurança: a exclusão só ocorre por POST (vinda do form do modal)
     if request.method == 'POST':
         item.delete()  # Dispara o signal e reduz o total
         messages.success(request, "Item removido com sucesso.")
@@ -79,8 +138,6 @@ def deletar_item_orcamento(request, pk):
 
 def editar_item_orcamento(request, pk):
     """ View para editar a quantidade e markup de um item via Modal """
-    from decimal import Decimal, InvalidOperation
-
     if not request.user.is_staff:
         return JsonResponse({'erro': 'Acesso negado'}, status=403)
 
@@ -104,24 +161,12 @@ def editar_item_orcamento(request, pk):
     return redirect('orcamentos:orcamento_detail', pk=orcamento_id)
 
 
-def atualizar_status_orcamento(request, pk):
-    """ View para atualizar rapidamente o status do orçamento via Modal """
-    if not request.user.is_staff:
-        return JsonResponse({'erro': 'Acesso negado'}, status=403)
-
-    orcamento = get_object_or_404(Orcamento, pk=pk)
-
-    if request.method == 'POST':
-        novo_status = request.POST.get('status')
-        if novo_status:
-            orcamento.status = novo_status
-            orcamento.save()
-            messages.success(request, f"Status do orçamento atualizado com sucesso!")
-
-    return redirect('orcamentos:orcamento_detail', pk=pk)
-
+# ==========================================
+# VIEWS DE API (AJAX / FETCH)
+# ==========================================
 
 def api_detalhes_produto(request, pk):
+    """ Devolve o preço base de um produto em formato JSON para o JavaScript """
     if not request.user.is_staff:
         return JsonResponse({'erro': 'Acesso negado'}, status=403)
 
@@ -134,12 +179,15 @@ def api_detalhes_produto(request, pk):
 
 
 # ==========================================
-# VIEWS DE PRODUTOS (APENAS ADMIN)
+# VIEWS DE PRODUTOS (CATÁLOGO - APENAS ADMIN)
 # ==========================================
+
 class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Produto
     template_name = 'orcamentos/produto_list.html'
     context_object_name = 'produtos'
+    paginate_by = 25  # Adicionada a paginação (25 itens por página)
+    ordering = ['-criado_em']  # Ordenação padrão necessária para o Paginator funcionar sem avisos
 
     def test_func(self):
         # Somente administradores gerais podem ver o catálogo de produtos e os preços base
