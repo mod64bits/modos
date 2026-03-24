@@ -165,24 +165,43 @@
 
         <!-- Área de Alertas / Mensagens (Fica acima do bloco de conteúdo) -->
         {% if messages %}
-        <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6" id="messages-container">
             {% for message in messages %}
-                <div class="p-4 mb-2 rounded-lg text-sm font-medium flex items-center shadow-sm
+                <div class="alert-toast p-4 mb-2 rounded-lg text-sm font-medium flex items-center justify-between shadow-sm
                     {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800
                     {% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800
                     {% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800
                     {% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
 
-                    {% if message.tags == 'success' %}
-                    <svg class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {% elif message.tags == 'error' %}
-                    <svg class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {% endif %}
+                    <div class="flex items-center">
+                        {% if message.tags == 'success' %}
+                        <svg class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {% elif message.tags == 'error' %}
+                        <svg class="h-5 w-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {% endif %}
 
-                    {{ message }}
+                        {{ message }}
+                    </div>
+
+                    <!-- Botão para fechar a mensagem manualmente -->
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
             {% endfor %}
         </div>
+
+        <!-- Script para auto-remover as mensagens após 5 segundos -->
+        <script>
+            setTimeout(function() {
+                const toasts = document.querySelectorAll('.alert-toast');
+                toasts.forEach(function(toast) {
+                    toast.style.transition = 'opacity 0.5s ease-out';
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500); // Remove do DOM após o fade out
+                });
+            }, 5000);
+        </script>
         {% endif %}
 
         <!-- Bloco Principal Dinâmico (Aqui entram as views do Django) -->

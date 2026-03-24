@@ -67,13 +67,43 @@ def deletar_item_orcamento(request, pk):
 
     item = get_object_or_404(ItemProdutoOrcamento, pk=pk)
     orcamento_id = item.orcamento.id
-    item.delete()  # Dispara o signal e reduz o total
-    messages.success(request, "Item removido com sucesso.")
+
+    # Adicionamos segurança: a exclusão só ocorre por POST (vinda do form do modal)
+    if request.method == 'POST':
+        item.delete()  # Dispara o signal e reduz o total
+        messages.success(request, "Item removido com sucesso.")
+
+    return redirect('orcamentos:orcamento_detail', pk=orcamento_id)
+
+
+def editar_item_orcamento(request, pk):
+    """ View para editar a quantidade e markup de um item via Modal """
+    from decimal import Decimal, InvalidOperation
+
+    if not request.user.is_staff:
+        return JsonResponse({'erro': 'Acesso negado'}, status=403)
+
+    item = get_object_or_404(ItemProdutoOrcamento, pk=pk)
+    orcamento_id = item.orcamento.id
+
+    if request.method == 'POST':
+        quantidade = request.POST.get('quantidade')
+        # Substitui vírgula por ponto para evitar erros de cast em decimais
+        markup_str = request.POST.get('porcentagem_markup', '0').replace(',', '.')
+
+        try:
+            if quantidade and markup_str:
+                item.quantidade = int(quantidade)
+                item.porcentagem_markup = Decimal(markup_str)
+                item.save()  # Dispara o signal de recálculo dos totais automaticamente
+                messages.success(request, "Item atualizado com sucesso!")
+        except (ValueError, InvalidOperation):
+            messages.error(request, "Valores inválidos. Verifique a quantidade e a margem.")
+
     return redirect('orcamentos:orcamento_detail', pk=orcamento_id)
 
 
 def api_detalhes_produto(request, pk):
-    """ API simples para o Javascript do Modal buscar o preço de compra em tempo real """
     if not request.user.is_staff:
         return JsonResponse({'erro': 'Acesso negado'}, status=403)
 
@@ -85,6 +115,9 @@ def api_detalhes_produto(request, pk):
     })
 
 
+# ==========================================
+# VIEWS DE PRODUTOS (APENAS ADMIN)
+# ==========================================
 class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Produto
     template_name = 'orcamentos/produto_list.html'
@@ -93,6 +126,7 @@ class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         # Somente administradores gerais podem ver o catálogo de produtos e os preços base
         return self.request.user.is_superuser
+
 
 class ProdutoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Produto
