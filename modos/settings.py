@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "theme",
     "django_tailwind_cli",
     "django_extensions",
+    "django.contrib.humanize",
     # apps
     "apps.accounts",
     "apps.companies",
@@ -137,9 +138,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "pt-br"  # Alterado para Português do Brasil
-TIME_ZONE = "America/Sao_Paulo"  # Ajuste para seu fuso horário
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
+USE_L10N = True  # Ativa a formatação de números baseada no local
 USE_TZ = True
 
 

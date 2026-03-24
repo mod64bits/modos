@@ -1,5 +1,6 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Orçamento #{{ orcamento.numero }}{% endblock %}
 
@@ -34,20 +35,20 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-lg shadow border border-gray-200">
                 <p class="text-sm font-medium text-gray-500">Total Produtos (Venda)</p>
-                <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_produtos_venda }}</p>
+                <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_produtos_venda|floatformat:2|intcomma }}</p>
             </div>
             <div class="bg-white p-5 rounded-lg shadow border border-gray-200">
                 <p class="text-sm font-medium text-gray-500">Total Mão de Obra</p>
-                <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_mao_de_obra }}</p>
+                <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_mao_de_obra|floatformat:2|intcomma }}</p>
             </div>
             <div class="bg-indigo-600 p-5 rounded-lg shadow text-white">
                 <p class="text-sm font-medium text-indigo-200">Valor Final P/ Cliente</p>
-                <p class="text-3xl font-bold">R$ {{ orcamento.valor_total_orcamento }}</p>
+                <p class="text-3xl font-bold">R$ {{ orcamento.valor_total_orcamento|floatformat:2|intcomma }}</p>
             </div>
             <div class="bg-green-50 p-5 rounded-lg shadow border border-green-200">
                 <p class="text-sm font-medium text-green-700">Lucro Líquido</p>
-                <p class="text-2xl font-bold text-green-700">R$ {{ orcamento.lucro_total_liquido }}</p>
-                <p class="text-xs text-green-600 mt-1">Já descontado Insumos (R$ {{ orcamento.total_insumos }})</p>
+                <p class="text-2xl font-bold text-green-700">R$ {{ orcamento.lucro_total_liquido|floatformat:2|intcomma }}</p>
+                <p class="text-xs text-green-600 mt-1">Já descontado Insumos (R$ {{ orcamento.total_insumos|floatformat:2|intcomma }})</p>
             </div>
         </div>
 
@@ -76,10 +77,10 @@
                         <tr>
                             <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ item.produto.nome }}</td>
                             <td class="px-6 py-4 text-center text-sm text-gray-500">{{ item.quantidade }}</td>
-                            <td class="px-6 py-4 text-sm text-gray-500">R$ {{ item.valor_unitario_compra_registrado }}</td>
-                            <td class="px-6 py-4 text-sm text-green-600 font-medium">+{{ item.porcentagem_markup }}%</td>
-                            <td class="px-6 py-4 text-sm text-gray-900">R$ {{ item.valor_unitario_venda }}</td>
-                            <td class="px-6 py-4 text-sm font-bold text-indigo-600">R$ {{ item.valor_total_venda }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">R$ {{ item.valor_unitario_compra_registrado|floatformat:2|intcomma }}</td>
+                            <td class="px-6 py-4 text-sm text-green-600 font-medium">+{{ item.porcentagem_markup|floatformat:2|intcomma }}%</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">R$ {{ item.valor_unitario_venda|floatformat:2|intcomma }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-indigo-600">R$ {{ item.valor_total_venda|floatformat:2|intcomma }}</td>
                             <td class="px-6 py-4 text-right flex justify-end space-x-3 items-center">
                                 <button type="button" onclick="abrirModalEditar('{{ item.id }}', '{{ item.produto.nome|escapejs }}', '{{ item.quantidade }}', '{{ item.porcentagem_markup }}', '{{ item.valor_unitario_compra_registrado }}')" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">Editar</button>
                                 <button type="button" onclick="abrirModalExcluir('{{ item.id }}', '{{ item.produto.nome|escapejs }}')" class="text-red-600 hover:text-red-900 text-sm font-medium">Remover</button>
@@ -142,7 +143,7 @@
 
                 <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
                     <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
-                    <span class="text-sm text-blue-900 font-bold">R$ <span id="display_compra">0.00</span></span>
+                    <span class="text-sm text-blue-900 font-bold">R$ <span id="display_compra">0,00</span></span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -159,11 +160,11 @@
                 <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
                     <div class="flex justify-between mb-2">
                         <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
-                        <span class="text-sm font-bold text-gray-900">R$ <span id="display_venda">0.00</span></span>
+                        <span class="text-sm font-bold text-gray-900">R$ <span id="display_venda">0,00</span></span>
                     </div>
                     <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
                         <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
-                        <span class="text-lg font-bold text-indigo-600">R$ <span id="display_total">0.00</span></span>
+                        <span class="text-lg font-bold text-indigo-600">R$ <span id="display_total">0,00</span></span>
                     </div>
                 </div>
             </div>
@@ -197,7 +198,7 @@
 
                 <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
                     <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
-                    <span class="text-sm text-blue-900 font-bold">R$ <span id="edit_display_compra">0.00</span></span>
+                    <span class="text-sm text-blue-900 font-bold">R$ <span id="edit_display_compra">0,00</span></span>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -214,11 +215,11 @@
                 <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
                     <div class="flex justify-between mb-2">
                         <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
-                        <span class="text-sm font-bold text-gray-900">R$ <span id="edit_display_venda">0.00</span></span>
+                        <span class="text-sm font-bold text-gray-900">R$ <span id="edit_display_venda">0,00</span></span>
                     </div>
                     <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
                         <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
-                        <span class="text-lg font-bold text-indigo-600">R$ <span id="edit_display_total">0.00</span></span>
+                        <span class="text-lg font-bold text-indigo-600">R$ <span id="edit_display_total">0,00</span></span>
                     </div>
                 </div>
             </div>
@@ -262,6 +263,11 @@
 <!-- JAVASCRIPT: CONTROLO DE MODAIS E MARKUP        -->
 <!-- ============================================== -->
 <script>
+    // Função auxiliar para formatar valores no padrão PT-BR (BRL)
+    function formatarMoedaBRL(valor) {
+        return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
     // Funções de Controlo dos Modais
     function fecharModal(modalId) {
         document.getElementById(modalId).classList.add('hidden');
@@ -281,7 +287,7 @@
         document.getElementById('edit_markup').value = parseFloat(formattedMarkup);
 
         valorCompraBaseEdit = parseFloat(valorCompra.replace(',', '.'));
-        document.getElementById('edit_display_compra').innerText = valorCompraBaseEdit.toFixed(2);
+        document.getElementById('edit_display_compra').innerText = formatarMoedaBRL(valorCompraBaseEdit);
 
         calcularValoresEdit();
 
@@ -308,7 +314,7 @@
             const produtoId = this.value;
             if (!produtoId) {
                 valorCompraBase = 0.00;
-                document.getElementById('display_compra').innerText = '0.00';
+                document.getElementById('display_compra').innerText = '0,00';
                 calcularValores();
                 return;
             }
@@ -317,7 +323,7 @@
                 if(response.ok) {
                     const data = await response.json();
                     valorCompraBase = parseFloat(data.valor_compra);
-                    document.getElementById('display_compra').innerText = valorCompraBase.toFixed(2);
+                    document.getElementById('display_compra').innerText = formatarMoedaBRL(valorCompraBase);
                     calcularValores();
                 }
             } catch (error) {
@@ -336,8 +342,8 @@
         const valorVenda = valorCompraBase * (1 + (markup / 100));
         const totalVenda = valorVenda * qtd;
 
-        document.getElementById('display_venda').innerText = valorVenda.toFixed(2);
-        document.getElementById('display_total').innerText = totalVenda.toFixed(2);
+        document.getElementById('display_venda').innerText = formatarMoedaBRL(valorVenda);
+        document.getElementById('display_total').innerText = formatarMoedaBRL(totalVenda);
     }
 
     // ==============================================
@@ -356,8 +362,8 @@
         const valorVenda = valorCompraBaseEdit * (1 + (markup / 100));
         const totalVenda = valorVenda * qtd;
 
-        document.getElementById('edit_display_venda').innerText = valorVenda.toFixed(2);
-        document.getElementById('edit_display_total').innerText = totalVenda.toFixed(2);
+        document.getElementById('edit_display_venda').innerText = formatarMoedaBRL(valorVenda);
+        document.getElementById('edit_display_total').innerText = formatarMoedaBRL(totalVenda);
     }
 </script>
 {% endblock %}
