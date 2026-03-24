@@ -27,7 +27,7 @@ class OrcamentoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.request.user.is_staff
 
     def get_success_url(self):
-        return reverse_lazy('orcamentos:orcamento_detail', kwargs={'pk': self.object.pk})
+        return reverse_lazy('orcamento_detail', kwargs={'pk': self.object.pk})
 
 
 class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
@@ -42,6 +42,7 @@ class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         ctx = super().get_context_data(**kwargs)
         ctx['item_form'] = ItemOrcamentoForm()
         ctx['itens'] = self.object.itens.all()
+        ctx['status_choices'] = Orcamento.STATUS_CHOICES  # NOVO: Envia as opções de status para o modal
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -101,6 +102,23 @@ def editar_item_orcamento(request, pk):
             messages.error(request, "Valores inválidos. Verifique a quantidade e a margem.")
 
     return redirect('orcamentos:orcamento_detail', pk=orcamento_id)
+
+
+def atualizar_status_orcamento(request, pk):
+    """ View para atualizar rapidamente o status do orçamento via Modal """
+    if not request.user.is_staff:
+        return JsonResponse({'erro': 'Acesso negado'}, status=403)
+
+    orcamento = get_object_or_404(Orcamento, pk=pk)
+
+    if request.method == 'POST':
+        novo_status = request.POST.get('status')
+        if novo_status:
+            orcamento.status = novo_status
+            orcamento.save()
+            messages.success(request, f"Status do orçamento atualizado com sucesso!")
+
+    return redirect('orcamentos:orcamento_detail', pk=pk)
 
 
 def api_detalhes_produto(request, pk):

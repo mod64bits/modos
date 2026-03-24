@@ -7,7 +7,8 @@ from .views import (
     editar_item_orcamento,
     api_detalhes_produto,
     ProdutoListView,
-    ProdutoCreateView
+    ProdutoCreateView,
+    atualizar_status_orcamento
 )
 
 app_name = "orcamentos"
@@ -17,6 +18,7 @@ urlpatterns = [
     path('', OrcamentoListView.as_view(), name='orcamento_list'),
     path('novo/', OrcamentoCreateView.as_view(), name='orcamento_create'),
     path('<uuid:pk>/', OrcamentoDetailView.as_view(), name='orcamento_detail'),
+    path('<uuid:pk>/status/', atualizar_status_orcamento, name='atualizar_status_orcamento'),
 
     # Ações Extras (API, Edição e Exclusão)
     path('item/<uuid:pk>/editar/', editar_item_orcamento, name='editar_item_orcamento'),
