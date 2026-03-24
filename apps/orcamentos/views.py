@@ -27,7 +27,7 @@ class OrcamentoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.request.user.is_staff
 
     def get_success_url(self):
-        return reverse_lazy('orcamento_detail', kwargs={'pk': self.object.pk})
+        return reverse_lazy('orcamentos:orcamento_detail', kwargs={'pk': self.object.pk})
 
 
 class OrcamentoDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
