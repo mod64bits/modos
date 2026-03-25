@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from decimal import Decimal, InvalidOperation
 
 from .models import Orcamento, ItemProdutoOrcamento, Produto
@@ -27,11 +27,11 @@ class OrcamentoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        # 1. Pega nos parâmetros que vêm pela URL (?q=...&status=...)
+        # Pega nos parâmetros que vêm pela URL (?q=...&status=...)
         query = self.request.GET.get('q')
         status_filter = self.request.GET.get('status')
 
-        # 2. Aplica o filtro de Texto (Busca por Número, Nome Avulso ou Empresa)
+        # Aplica o filtro de Texto (Busca por Número, Nome Avulso ou Empresa)
         if query:
             qs = qs.filter(
                 Q(numero__icontains=query) |
@@ -39,11 +39,11 @@ class OrcamentoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
                 Q(empresa__nome__icontains=query)
             )
 
-        # 3. Aplica o filtro de Status (Se algum for selecionado no dropdown)
+        # Aplica o filtro de Status (Se algum for selecionado no dropdown)
         if status_filter:
             qs = qs.filter(status=status_filter)
 
-        # 4. Ordena do mais recente para o mais antigo
+        # Ordena do mais recente para o mais antigo
         return qs.order_by('-criado_em')
 
 
@@ -195,6 +195,49 @@ def api_detalhes_produto(request, pk):
     })
 
 
+def editar_produto_catalogo(request, pk):
+    """ Edita as informações base de um produto do catálogo via Modal """
+    if not request.user.is_superuser:
+        return JsonResponse({'erro': 'Acesso negado'}, status=403)
+
+    produto = get_object_or_404(Produto, pk=pk)
+
+    if request.method == 'POST':
+        produto.nome = request.POST.get('nome')
+        produto.fabricante = request.POST.get('fabricante')
+        produto.modelo = request.POST.get('modelo')
+        produto.link_produto = request.POST.get('link_produto', '')
+
+        valor_str = request.POST.get('valor_compra', '0').replace(',', '.')
+        try:
+            produto.valor_compra = Decimal(valor_str)
+            produto.save()
+            messages.success(request, "Produto atualizado no catálogo com sucesso!")
+        except (ValueError, InvalidOperation):
+            messages.error(request, "Valor de compra inválido.")
+
+    return redirect('orcamentos:produto_list')
+
+
+def deletar_produto_catalogo(request, pk):
+    """ Exclui um produto base do catálogo via Modal, respeitando relacionamentos (Protected) """
+    if not request.user.is_superuser:
+        return JsonResponse({'erro': 'Acesso negado'}, status=403)
+
+    produto = get_object_or_404(Produto, pk=pk)
+
+    if request.method == 'POST':
+        try:
+            produto.delete()
+            messages.success(request, "Produto removido do catálogo com sucesso!")
+        except ProtectedError:
+            # Protege o sistema de dar erro (crash 500) caso este produto esteja nalgum orçamento salvo!
+            messages.error(request,
+                           "Erro: Este produto não pode ser excluído pois já está vinculado a um ou mais orçamentos.")
+
+    return redirect('orcamentos:produto_list')
+
+
 # ==========================================
 # VIEWS DE PRODUTOS (CATÁLOGO - APENAS ADMIN)
 # ==========================================
@@ -203,8 +246,8 @@ class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Produto
     template_name = 'orcamentos/produto_list.html'
     context_object_name = 'produtos'
-    paginate_by = 10  # Adicionada a paginação (10 itens por página)
-    ordering = ['-criado_em']  # Ordenação padrão necessária para o Paginator funcionar sem avisos
+    paginate_by = 10  # Paginação
+    ordering = ['-criado_em']  # Ordenação padrão necessária para o Paginator funcionar
 
     def test_func(self):
         # Somente administradores gerais podem ver o catálogo de produtos e os preços base

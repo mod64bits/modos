@@ -8,6 +8,8 @@ from .views import (
     editar_item_orcamento,
     atualizar_status_orcamento,
     api_detalhes_produto,
+    editar_produto_catalogo,
+    deletar_produto_catalogo,
     ProdutoListView,
     ProdutoCreateView
 )
@@ -23,12 +25,16 @@ urlpatterns = [
     path('<uuid:pk>/editar/', OrcamentoUpdateView.as_view(), name='orcamento_update'),
     path('<uuid:pk>/status/', atualizar_status_orcamento, name='atualizar_status_orcamento'),
 
-    # Ações Extras (API, Edição e Exclusão)
+    # Ações Extras de Itens (Edição e Exclusão no Orçamento)
     path('item/<uuid:pk>/editar/', editar_item_orcamento, name='editar_item_orcamento'),
     path('item/<uuid:pk>/deletar/', deletar_item_orcamento, name='deletar_item_orcamento'),
+
+    # API de Preços
     path('api/produto/<uuid:pk>/', api_detalhes_produto, name='api_detalhes_produto'),
 
     # Rotas do Catálogo de Produtos (Apenas Admin)
     path('produtos/', ProdutoListView.as_view(), name='produto_list'),
     path('produtos/novo/', ProdutoCreateView.as_view(), name='produto_create'),
+    path('produtos/<uuid:pk>/editar/', editar_produto_catalogo, name='produto_update'),
+    path('produtos/<uuid:pk>/deletar/', deletar_produto_catalogo, name='produto_delete'),
 ]

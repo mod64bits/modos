@@ -4996,8 +4996,18 @@
     }
   }
   @media (hover: hover) {
+    .hover\:bg-indigo-100:hover {
+      background-color: var(--color-indigo-100);
+    }
+  }
+  @media (hover: hover) {
     .hover\:bg-indigo-700:hover {
       background-color: var(--color-indigo-700);
+    }
+  }
+  @media (hover: hover) {
+    .hover\:bg-red-100:hover {
+      background-color: var(--color-red-100);
     }
   }
   @media (hover: hover) {
