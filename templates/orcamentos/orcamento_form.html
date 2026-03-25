@@ -1,6 +1,8 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Novo Orçamento{% endblock %}
+{% block title %}
+    {% if form.instance.pk %}Editar Orçamento #{{ form.instance.numero }}{% else %}Novo Orçamento{% endif %}
+{% endblock %}
 
 {% block content %}
 <!-- CDN do Quill CSS para o Editor de Texto -->
@@ -32,17 +34,38 @@
 
         <div class="mb-8 flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900">Novo Orçamento</h2>
-                <p class="text-sm text-gray-500 mt-1">Preencha os dados base. Poderá adicionar os produtos na página seguinte.</p>
+                <h2 class="text-2xl font-bold text-gray-900">
+                    {% if form.instance.pk %}
+                        Editar Orçamento #{{ form.instance.numero }}
+                    {% else %}
+                        Novo Orçamento
+                    {% endif %}
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                    {% if form.instance.pk %}
+                        Atualize as informações base do orçamento (Cliente, Prazos, Custos base e Descrição).
+                    {% else %}
+                        Preencha os dados base. Poderá adicionar os produtos na página seguinte.
+                    {% endif %}
+                </p>
             </div>
-            <a href="{% url 'orcamentos:orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm">
-                &larr; Voltar à Lista
-            </a>
+
+            <!-- O botão de voltar muda dependendo se estamos a editar ou a criar -->
+            {% if form.instance.pk %}
+                <a href="{% url 'orcamentos:orcamento_detail' form.instance.pk %}" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm">
+                    &larr; Voltar aos Detalhes
+                </a>
+            {% else %}
+                <a href="{% url 'orcamentos:orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 font-medium text-sm">
+                    &larr; Voltar à Lista
+                </a>
+            {% endif %}
         </div>
 
         <div class="bg-white shadow sm:rounded-lg overflow-hidden">
             <div class="px-4 py-5 sm:p-6">
-                <form method="post">
+                <!-- ADICIONADO: id="formOrcamento" para o JavaScript encontrar o formulário correto -->
+                <form method="post" id="formOrcamento">
                     {% csrf_token %}
 
                     <!-- Exibição de erros gerais do formulário (ex: Validação do Clean) -->
@@ -111,7 +134,7 @@
                                 {{ form.descricao_geral }}
                             </div>
 
-                            <!-- Container do novo editor interativo -->
+                            <!-- Container do novo editor interativo (já carrega o texto se for edição) -->
                             <div id="editor-container" class="mb-2">
                                 {{ form.descricao_geral.value|default:""|safe }}
                             </div>
@@ -147,12 +170,21 @@
 
                     <!-- BOTÕES -->
                     <div class="mt-8 border-t border-gray-200 pt-5 flex justify-end">
-                        <a href="{% url 'orcamentos:orcamento_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3 transition-colors">
-                            Cancelar
-                        </a>
-                        <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
-                            Avançar e Adicionar Produtos
-                        </button>
+                        {% if form.instance.pk %}
+                            <a href="{% url 'orcamentos:orcamento_detail' form.instance.pk %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3 transition-colors">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+                                Salvar Alterações
+                            </button>
+                        {% else %}
+                            <a href="{% url 'orcamentos:orcamento_list' %}" class="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50 mr-3 transition-colors">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="bg-indigo-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-indigo-700 transition-colors">
+                                Avançar e Adicionar Produtos
+                            </button>
+                        {% endif %}
                     </div>
                 </form>
             </div>
@@ -187,15 +219,29 @@
             }
         });
 
-        // Sincronizar o conteúdo do Quill com o Textarea original ao Guardar (Submit)
-        var form = document.querySelector('form');
-        form.onsubmit = function() {
-            var descricaoTextarea = document.getElementById('id_descricao_geral');
-            if (descricaoTextarea) {
-                // Guarda o HTML formatado gerado pelo editor para a base de dados
-                descricaoTextarea.value = quill.root.innerHTML;
+        const descricaoTextarea = document.getElementById('id_descricao_geral');
+
+        if (descricaoTextarea) {
+            // Desativa a validação do browser para não bloquear de forma invisível
+            descricaoTextarea.removeAttribute('required');
+
+            // Sincroniza em tempo real enquanto digita!
+            quill.on('text-change', function() {
+                if (quill.getText().trim().length === 0) {
+                    descricaoTextarea.value = '';
+                } else {
+                    descricaoTextarea.value = quill.root.innerHTML;
+                }
+            });
+
+            // Sincroniza na submissão apenas para garantir
+            const formOrcamento = document.getElementById('formOrcamento');
+            if (formOrcamento) {
+                formOrcamento.addEventListener('submit', function() {
+                    descricaoTextarea.value = quill.root.innerHTML;
+                });
             }
-        };
+        }
     });
 </script>
 {% endblock %}

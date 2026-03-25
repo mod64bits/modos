@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, CreateView, DetailView
+from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -19,7 +19,7 @@ class OrcamentoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Orcamento
     template_name = 'orcamentos/orcamento_list.html'
     context_object_name = 'orcamentos'
-    paginate_by = 25  # Define a paginação para exibir 25 resultados por página
+    paginate_by = 10  # Define a paginação para exibir 10 resultados por página
 
     def test_func(self):
         return self.request.user.is_staff
@@ -61,6 +61,23 @@ class OrcamentoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def form_valid(self, form):
         messages.success(self.request, "Orçamento criado! Agora adicione os produtos/serviços.")
+        return super().form_valid(form)
+
+
+class OrcamentoUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Orcamento
+    form_class = OrcamentoForm
+    template_name = 'orcamentos/orcamento_form.html'
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_success_url(self):
+        # Após editar, devolve o utilizador à página de detalhes do mesmo orçamento
+        return reverse_lazy('orcamentos:orcamento_detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, "Orçamento atualizado com sucesso!")
         return super().form_valid(form)
 
 
@@ -186,7 +203,7 @@ class ProdutoListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     model = Produto
     template_name = 'orcamentos/produto_list.html'
     context_object_name = 'produtos'
-    paginate_by = 25  # Adicionada a paginação (25 itens por página)
+    paginate_by = 10  # Adicionada a paginação (10 itens por página)
     ordering = ['-criado_em']  # Ordenação padrão necessária para o Paginator funcionar sem avisos
 
     def test_func(self):

@@ -5,14 +5,26 @@
 {% block title %}Orçamento #{{ orcamento.numero }}{% endblock %}
 
 {% block content %}
+<!-- Adiciona o CSS do Quill apenas para formatar corretamente as listas e negritos na visualização -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
 <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="mb-6 flex items-center justify-between">
             <div>
                 <a href="{% url 'orcamentos:orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium mb-2 inline-block">&larr; Voltar para Orçamentos</a>
-                <h1 class="text-3xl font-bold text-gray-900">Orçamento #{{ orcamento.numero }}</h1>
-                <p class="text-sm text-gray-500">Cliente: {{ orcamento.nome_cliente }} | Validade: {{ orcamento.validade|date:"d/m/Y" }}</p>
+
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-3xl font-bold text-gray-900">Orçamento #{{ orcamento.numero }}</h1>
+
+                    <!-- Botão de Editar Dados do Orçamento -->
+                    <a href="{% url 'orcamentos:orcamento_update' orcamento.id %}" class="text-gray-400 hover:text-indigo-600 transition-colors p-1.5 rounded-md hover:bg-indigo-50 border border-gray-200 shadow-sm bg-white" title="Editar Dados Base do Orçamento">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </a>
+                </div>
+
+                <p class="text-sm text-gray-500 mt-1">Cliente: {{ orcamento.nome_cliente }} | Validade: {{ orcamento.validade|date:"d/m/Y" }}</p>
             </div>
 
             <div class="flex items-center space-x-3">
@@ -65,6 +77,19 @@
                 <p class="text-sm font-medium text-green-700">Lucro Líquido</p>
                 <p class="text-2xl font-bold text-green-700">R$ {{ orcamento.lucro_total_liquido|floatformat:2|intcomma }}</p>
                 <p class="text-xs text-green-600 mt-1">Já descontado Insumos (R$ {{ orcamento.total_insumos|floatformat:2|intcomma }})</p>
+            </div>
+        </div>
+
+        <!-- Bloco de Descrição Geral do Serviço / Escopo -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Descrição do Serviço / Escopo</h3>
+            </div>
+            <!-- Usa as classes do Quill (ql-snow e ql-editor) para reaproveitar a tipografia -->
+            <div class="p-5 ql-snow border-none">
+                <div class="ql-editor text-gray-700" style="padding: 0; min-height: auto;">
+                    {{ orcamento.descricao_geral|default:"<p class='text-gray-400 italic'>Nenhum escopo geral preenchido.</p>"|safe }}
+                </div>
             </div>
         </div>
 

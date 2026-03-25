@@ -2,22 +2,25 @@ from django.urls import path
 from .views import (
     OrcamentoListView,
     OrcamentoCreateView,
+    OrcamentoUpdateView,
     OrcamentoDetailView,
     deletar_item_orcamento,
     editar_item_orcamento,
+    atualizar_status_orcamento,
     api_detalhes_produto,
     ProdutoListView,
-    ProdutoCreateView,
-    atualizar_status_orcamento
+    ProdutoCreateView
 )
 
-app_name = "orcamentos"
+# Namespace para organizar as rotas deste app
+app_name = 'orcamentos'
 
 urlpatterns = [
     # Rotas principais de Orçamentos
     path('', OrcamentoListView.as_view(), name='orcamento_list'),
     path('novo/', OrcamentoCreateView.as_view(), name='orcamento_create'),
     path('<uuid:pk>/', OrcamentoDetailView.as_view(), name='orcamento_detail'),
+    path('<uuid:pk>/editar/', OrcamentoUpdateView.as_view(), name='orcamento_update'),
     path('<uuid:pk>/status/', atualizar_status_orcamento, name='atualizar_status_orcamento'),
 
     # Ações Extras (API, Edição e Exclusão)
