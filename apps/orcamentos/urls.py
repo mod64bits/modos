@@ -11,7 +11,9 @@ from .views import (
     editar_produto_catalogo,
     deletar_produto_catalogo,
     ProdutoListView,
-    ProdutoCreateView
+    ProdutoCreateView,
+    OrcamentoPDFClienteView, # Nova View de PDF (Cliente)
+    OrcamentoPDFInternoView  # Nova View de PDF (Gerencial/Técnico)
 )
 
 # Namespace para organizar as rotas deste app
@@ -24,6 +26,10 @@ urlpatterns = [
     path('<uuid:pk>/', OrcamentoDetailView.as_view(), name='orcamento_detail'),
     path('<uuid:pk>/editar/', OrcamentoUpdateView.as_view(), name='orcamento_update'),
     path('<uuid:pk>/status/', atualizar_status_orcamento, name='atualizar_status_orcamento'),
+
+    # ROTAS DE PDF (Abrem numa nova aba do navegador)
+    path('<uuid:pk>/pdf/cliente/', OrcamentoPDFClienteView.as_view(), name='orcamento_pdf_cliente'),
+    path('<uuid:pk>/pdf/interno/', OrcamentoPDFInternoView.as_view(), name='orcamento_pdf_interno'),
 
     # Ações Extras de Itens (Edição e Exclusão no Orçamento)
     path('item/<uuid:pk>/editar/', editar_item_orcamento, name='editar_item_orcamento'),

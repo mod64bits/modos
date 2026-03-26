@@ -1,6 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from apps.core.models import ConfiguracaoGeral
+from apps.core.gerador_pdf import render_to_pdf
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.http import JsonResponse
@@ -267,3 +270,58 @@ class ProdutoCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Produto cadastrado no catálogo com sucesso!")
         return super().form_valid(form)
+
+
+class OrcamentoPDFClienteView(LoginRequiredMixin, DetailView):
+    """ Gera o PDF apenas com valores de VENDA para enviar ao cliente """
+    model = Orcamento
+
+    def get(self, request, *args, **kwargs):
+        orcamento = self.get_object()
+        config = ConfiguracaoGeral.load()
+
+        context = {
+            'orcamento': orcamento,
+            'itens': orcamento.itens.all(),
+            'minha_empresa': config,
+            'tipo_pdf': 'cliente'
+        }
+
+        pdf = render_to_pdf('orcamentos/pdfs/orcamento_pdf_cliente.html', context)
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            # 'inline' faz abrir na aba. 'attachment' faria download.
+            response['Content-Disposition'] = f'inline; filename="Orcamento_{orcamento.numero}.pdf"'
+            return response
+        return HttpResponse("Erro ao gerar o PDF.", status=500)
+
+
+class OrcamentoPDFInternoView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+    """ Gera o PDF com Lucros e Custos (Acesso restrito a técnicos) """
+    model = Orcamento
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get(self, request, *args, **kwargs):
+        orcamento = self.get_object()
+
+        try:
+            config = ConfiguracaoGeral.objects.first()
+        except Exception:
+            config = None
+
+        context = {
+            'orcamento': orcamento,
+            'itens': orcamento.itens.all(),
+            'minha_empresa': config,
+            'tipo_pdf': 'interno',
+            'gerado_por': request.user
+        }
+
+        pdf = render_to_pdf('orcamentos/pdfs/orcamento_pdf_interno.html', context)
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'inline; filename="Orcamento_{orcamento.numero}_INTERNO.pdf"'
+            return response
+        return HttpResponse("Erro ao gerar o PDF.", status=500)
