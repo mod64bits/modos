@@ -13,13 +13,20 @@ from .views import (
     ProdutoListView,
     ProdutoCreateView,
     OrcamentoPDFClienteView, # Nova View de PDF (Cliente)
-    OrcamentoPDFInternoView  # Nova View de PDF (Gerencial/Técnico)
+    OrcamentoPDFInternoView,  # Nova View de PDF (Gerencial/Técnico)
+    PublicOrcamentoConsultaView,
+    PublicOrcamentoPDFView
 )
 
 # Namespace para organizar as rotas deste app
 app_name = 'orcamentos'
 
 urlpatterns = [
+    # ==========================================
+    # ROTAS PÚBLICAS PARA CLIENTES (Sem Login)
+    # ==========================================
+    path('consulta/', PublicOrcamentoConsultaView.as_view(), name='consulta_publica'),
+    path('consulta/<int:numero>/<str:hash_acesso>/', PublicOrcamentoPDFView.as_view(), name='pdf_publico'),
     # Rotas principais de Orçamentos
     path('', OrcamentoListView.as_view(), name='orcamento_list'),
     path('novo/', OrcamentoCreateView.as_view(), name='orcamento_create'),

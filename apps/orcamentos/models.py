@@ -49,7 +49,8 @@ class Orcamento(models.Model):
     descricao_geral = models.TextField("Descrição Geral do Serviço",
                                        help_text="Explique o escopo do projeto ou manutenção.")
 
-    # Entradas Manuais (Alterado 0.00 para Decimal('0.00'))
+    # Código único de acesso para o cliente
+    hash_acesso = models.CharField("Código de Acesso", max_length=6, unique=True, blank=True, editable=False)
     total_mao_de_obra = models.DecimalField("Total Mão de Obra (R$)", max_digits=10, decimal_places=2,
                                             default=Decimal('0.00'))
     total_insumos = models.DecimalField("Total Insumos/Gastos (R$)", max_digits=10, decimal_places=2,

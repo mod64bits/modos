@@ -1,7 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
+from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic.base import View
+
 from apps.core.models import ConfiguracaoGeral
 from apps.core.gerador_pdf import render_to_pdf
 from django.urls import reverse_lazy
@@ -325,3 +328,66 @@ class OrcamentoPDFInternoView(LoginRequiredMixin, UserPassesTestMixin, DetailVie
             response['Content-Disposition'] = f'inline; filename="Orcamento_{orcamento.numero}_INTERNO.pdf"'
             return response
         return HttpResponse("Erro ao gerar o PDF.", status=500)
+
+
+class PublicOrcamentoPDFView(View):
+    """ Gera o PDF para o cliente se a validade não estiver expirada """
+
+    def get(self, request, numero, hash_acesso):
+        # 1. Tenta encontrar o orçamento pela combinação exata de Número + Hash
+        orcamento = get_object_or_404(Orcamento, numero=numero, hash_acesso=hash_acesso.upper())
+
+        # 2. VERIFICAÇÃO DE VALIDADE
+        hoje = timezone.now().date()
+        if orcamento.validade < hoje:
+            # Se expirou, renderiza a página de erro (o HTML que tem no Canvas)
+            context_erro = {'orcamento': orcamento}
+            return render(request, 'orcamentos/public_expirado.html', context_erro)
+
+        # 3. Se estiver válido, carrega as configurações e gera o PDF da Via do Cliente
+        try:
+            config = ConfiguracaoGeral.objects.first()
+        except Exception:
+            config = None
+
+        context = {
+            'orcamento': orcamento,
+            'itens': orcamento.itens.all(),
+            'minha_empresa': config,
+            'tipo_pdf': 'cliente'
+        }
+
+        pdf = render_to_pdf('orcamentos/pdfs/orcamento_pdf_cliente.html', context)
+
+        if pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            # 'inline' faz o PDF abrir diretamente num novo separador do navegador
+            response['Content-Disposition'] = f'inline; filename="Orcamento_{orcamento.numero}.pdf"'
+            return response
+
+        return HttpResponse("Ocorreu um erro ao processar o seu documento.", status=500)
+
+
+class PublicOrcamentoConsultaView(View):
+    """ Exibe a página para o cliente inserir o Número e a Hash """
+
+    def get(self, request):
+        # Quando o cliente acede ao link, mostramos a tela limpa de formulário
+        return render(request, 'orcamentos/public_consulta.html')
+
+    def post(self, request):
+        # Quando o cliente clica em "Aceder ao Documento"
+        numero = request.POST.get('numero')
+        hash_acesso = request.POST.get('hash_acesso', '').strip().upper()
+
+        try:
+            # Verifica na base de dados se existe um orçamento com a combinação exata
+            orcamento = Orcamento.objects.get(numero=numero, hash_acesso=hash_acesso)
+
+            # Se encontrar, redireciona o utilizador para a View do PDF passando os dados na URL
+            return redirect('orcamentos:pdf_publico', numero=orcamento.numero, hash_acesso=orcamento.hash_acesso)
+
+        except Orcamento.DoesNotExist:
+            # Se a combinação estiver errada, devolve um erro na mesma tela
+            messages.error(request, "Orçamento não encontrado ou código de acesso inválido.")
+            return redirect('orcamentos:consulta_publica')

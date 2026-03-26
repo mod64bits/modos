@@ -24,13 +24,18 @@
         .items-table td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
 
         /* Resumo de Totais */
-        .totals-table { width: 40%; margin-left: 60%; border-collapse: collapse; margin-bottom: 30px; }
+        .totals-table { width: 40%; margin-left: 60%; border-collapse: collapse; margin-bottom: 20px; }
         .totals-table th { text-align: right; padding: 5px 10px; color: #4b5563; }
         .totals-table td { text-align: right; padding: 5px 10px; font-weight: bold; }
         .total-final { background-color: #1e3a8a; color: white; font-size: 14px; }
 
         /* Descrição */
         .desc-box { margin-bottom: 20px; font-size: 11px; line-height: 1.5; }
+
+        /* Quadro de Acesso Online */
+        .online-access-box { background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; margin-top: 10px; border-radius: 4px; }
+        .online-access-title { font-size: 12px; color: #1e40af; font-weight: bold; margin-bottom: 4px; }
+        .online-access-text { font-size: 11px; color: #1e3a8a; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -39,7 +44,7 @@
     <table class="header-table">
         <tr>
             <td class="header-company">
-                <div class="company-name">{{ minha_empresa.empresa_nome }}</div>
+                <div class="company-name">{{ minha_empresa.empresa_nome|default:"Sua Empresa" }}</div>
                 <div class="company-info">
                     {% if minha_empresa.empresa_cnpj %}CNPJ: {{ minha_empresa.empresa_cnpj }}<br>{% endif %}
                     {% if minha_empresa.empresa_endereco %}Endereço: {{ minha_empresa.empresa_endereco }}<br>{% endif %}
@@ -51,7 +56,7 @@
                 <div class="doc-title">ORÇAMENTO</div>
                 <div style="font-size: 14px; margin-top: 5px;">Nº {{ orcamento.numero }}</div>
                 <div class="company-info" style="margin-top: 5px;">Data: {{ orcamento.criado_em|date:"d/m/Y" }}</div>
-                <div class="company-info text-red-600 font-bold">Válido até: {{ orcamento.validade|date:"d/m/Y" }}</div>
+                <div class="company-info text-red-600 font-bold" style="color: #dc2626;">Válido até: {{ orcamento.validade|date:"d/m/Y" }}</div>
             </td>
         </tr>
     </table>
@@ -117,7 +122,18 @@
         </tr>
     </table>
 
-    <div style="text-align: center; margin-top: 50px; font-size: 10px; color: #6b7280;">
+    <!-- NOVO: INSTRUÇÕES PARA ACESSO ONLINE -->
+    <div class="online-access-box">
+        <div class="online-access-title">Consulte e Aprove este Orçamento Online</div>
+        <div class="online-access-text">
+            Para maior comodidade, você pode consultar o status atualizado deste documento no nosso portal.<br><br>
+            Acesse o link: <b>{{ minha_empresa.site_url|default:"http://localhost:8000" }}/orcamentos/consulta/</b><br>
+            Número do Orçamento: <b>{{ orcamento.numero }}</b><br>
+            Código de Acesso: <b>{{ orcamento.hash_acesso }}</b>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #6b7280;">
         Agradecemos a oportunidade de apresentar esta proposta comercial.<br>
         Ficamos à disposição para quaisquer dúvidas.
     </div>
