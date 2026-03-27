@@ -15,7 +15,17 @@ fi
 echo "Aplicando migrações..."
 python manage.py migrate
 
-# Coletar arquivos estáticos
+# ==================================================
+# ADICIONADO: Compilar o CSS do Tailwind
+# ==================================================
+echo "Instalando dependências do Tailwind (Node.js)..."
+python manage.py tailwind install --no-input
+
+echo "Compilando o Tailwind CSS para produção..."
+python manage.py tailwind build
+# ==================================================
+
+# Coletar arquivos estáticos (Agora vai pegar o CSS recém-criado)
 echo "Coletando arquivos estáticos..."
 python manage.py collectstatic --no-input --clear
 
