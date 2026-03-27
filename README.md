@@ -1,6 +1,7 @@
 # Sistema de Gestão de TI e Helpdesk (Django)
 
 Este projeto é um sistema web desenvolvido em Django para gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controlo de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).
+
 <img src="screenshot/dashboard.png" alt="dashboard">
 
 ### Ajustes e melhorias
@@ -8,15 +9,20 @@ Este projeto é um sistema web desenvolvido em Django para gestão completa de d
 O projeto ainda está em desenvolvimento e as próximas atualizações serão voltadas para as seguintes tarefas:
 
 - [x] Painel do Utilizador
-- [ ] Painel do Administrador
+- [x] Painel do Administrador
 - [x] Painel do Tecnico
 - [x] Envio de e-mail
 - [x] Filtro de Relatorios
-- [x] envio de relatios em PDF por email
-- [ ] Orcamentos avusos
-- [ ] Orcamentos para empresas cadastradas
+- [x] Envio de relatórios em PDF por email
+- [x] Orcamentos avulsos
+- [x] Orcamentos para empresas cadastradas
+- [x] Portal Público de Consulta de Orçamentos (Acesso via Link Seguro e Hash)
 - [ ] Integração com sistemas externos (unifi)
 - [ ] Integração com sistemas externos (Mikrotik)
+- [ ] Integração de Meios de Pagamento (Futuro)
+
+---
+
 ## 🚀 Funcionalidades Principais
 
 ### 1. Gestão Corporativa (App `accounts`)
@@ -55,6 +61,15 @@ O projeto ainda está em desenvolvimento e as próximas atualizações serão vo
 * **Servidor de E-mail (SMTP) no Admin**: Backend de e-mail customizado que lê as configurações (Host, Porta, Utilizador, Password, TLS) diretamente da base de dados. Permite trocar a conta de disparo sem alterar o código-fonte ou reiniciar o servidor.
 * **Notificações Automáticas**: Disparo de e-mails em tempo real (utilizando Django Signals) para alertar solicitantes e técnicos sempre que um chamado for aberto ou atualizado.
 
+### 6. Gestão de Orçamentos e Vendas (App `orcamentos`)
+* **Catálogo de Produtos:** Base de dados centralizada de equipamentos e serviços com gestão de custo base de compra.
+* **Calculadora de Margens:** Cálculo automático de lucro, markup e valor de venda na adição de itens aos orçamentos.
+* **Múltiplos Perfis de Cliente:** Suporte flexível tanto para empresas já registadas no sistema como para clientes avulsos.
+* **Exportação Dinâmica em PDF:**
+  * **Via Gerencial:** Relatório confidencial com exposição de custos e lucros (acesso restrito à equipa técnica).
+  * **Via do Cliente:** Documento profissional otimizado para o cliente final, exibindo apenas os valores de venda.
+* **Portal Público de Consulta:** Acesso independente sem necessidade de login, onde o cliente introduz o Número da O.S. e um Código de Acesso (Hash de 6 caracteres) para consultar a proposta em PDF. Inclui validação automática de data de expiração da proposta.
+
 ---
 
 ## 🛠️ Instalação e Configuração
@@ -64,9 +79,40 @@ O projeto ainda está em desenvolvimento e as próximas atualizações serão vo
 * Django 4.0+
 * `django-localflavor` (Opcional, para validação de CNPJ)
 * `django-tailwind` (Para a renderização do frontend)
+* `xhtml2pdf` (Para geração de relatórios e orçamentos em PDF)
 
 ### Passo a Passo
 
 1. **Clonar e Instalar Dependências**
    ```bash
-   pip install django django-stubs django-tailwind
+   pip install django django-stubs django-tailwind xhtml2pdf celery redis
+   ```
+
+2. **Configuração Inicial**
+   No ficheiro `settings.py`, certifique-se de definir o modelo de utilizador personalizado e as permissões de CSRF para o seu domínio (se estiver em produção):
+   ```python
+   AUTH_USER_MODEL = 'accounts.Usuario'
+   CSRF_TRUSTED_ORIGINS = ['[https://seusite.com](https://seusite.com)']
+   ```
+
+3. **Base de Dados e Configurações Core**
+   ```bash
+   python manage.py makemigrations accounts equipamentos orders core dashboard orcamentos
+   python manage.py migrate
+   ```
+
+4. **Criar Superutilizador**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+5. **Correr o Servidor e Tailwind**
+   Num terminal, inicie o servidor Django:
+   ```bash
+   python manage.py runserver
+   ```
+   
+   Noutro terminal, inicie o compilador do Tailwind:
+   ```bash
+   python manage.py tailwind start
+   ```

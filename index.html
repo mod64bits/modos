@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModOS PRO - Documentação Interativa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fafaf9; color: #292524; }
+
+        /* Estilos obrigatórios para o contentor do gráfico */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 350px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 320px; max-width: 400px; }
+        }
+
+        /* Animações e Transições */
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .feature-details { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; }
+        .feature-card.expanded .feature-details { max-height: 500px; padding-top: 1rem; border-top: 1px solid #e7e5e4; margin-top: 1rem; }
+        .feature-icon { transition: transform 0.3s ease; }
+        .feature-card.expanded .feature-icon { transform: rotate(180deg); }
+
+        /* Personalização da Scrollbar para o bloco de código */
+        pre::-webkit-scrollbar { height: 8px; width: 8px; }
+        pre::-webkit-scrollbar-track { background: #292524; border-radius: 4px; }
+        pre::-webkit-scrollbar-thumb { background: #57534e; border-radius: 4px; }
+        pre::-webkit-scrollbar-thumb:hover { background: #78716c; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Chosen Palette: Warm Neutrals & Indigo (Tailwind Stone-50, Stone-800, Indigo-600) -->
+    <!-- Application Structure Plan: O SPA organiza o conteúdo do README original num painel interativo. A interface está dividida em 4 separadores (tabs): 1. Roadmap (exibe o progresso de desenvolvimento com um gráfico Chart.js); 2. Funcionalidades (utiliza cartões expansíveis em grelha para organizar descrições longas); 3. Instalação (guia passo-a-passo num layout tipo terminal); 4. Markdown Bruto (entrega exatamente o texto original pedido pelo utilizador com funcionalidade de cópia). Esta estrutura otimiza o consumo de informação densa e cumpre os requisitos do sistema de gerar um SPA, ao mesmo tempo que satisfaz o pedido do utilizador pelo Markdown cru. -->
+    <!-- Visualization & Content Choices: Roadmap -> Goal: Mostrar progresso -> Method: Gráfico Doughnut (Chart.js) -> Interaction: Tooltips ao passar o rato -> Justification: Transmite instantaneamente a taxa de conclusão (9 vs 3) sem necessidade de SVG. Funcionalidades -> Goal: Detalhar módulos técnicos -> Method: Grelha de cartões interativos -> Interaction: Clicar para expandir -> Justification: Mantém a interface limpa, ocultando texto até que seja necessário. Markdown Tab -> Goal: Entregar texto cru -> Method: Bloco HTML <pre> -> Interaction: Botão de cópia para a área de transferência -> Justification: Resposta direta ao pedido original do utilizador. NENHUM SVG ou Mermaid utilizado. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <!-- Cabeçalho Principal -->
+    <header class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">💻</span>
+                    <div>
+                        <h1 class="text-xl font-bold text-stone-800 leading-tight">ModOS PRO</h1>
+                        <p class="text-xs font-medium text-indigo-600 uppercase tracking-wider">Documentação Oficial</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegação de Separadores (Tabs) -->
+            <nav class="flex space-x-1 overflow-x-auto pb-px" aria-label="Tabs">
+                <button onclick="switchTab('tab-roadmap')" id="btn-tab-roadmap" class="tab-btn active bg-indigo-600 text-white px-4 py-2.5 rounded-t-lg font-medium text-sm whitespace-nowrap transition-colors">
+                    📍 Visão & Roadmap
+                </button>
+                <button onclick="switchTab('tab-features')" id="btn-tab-features" class="tab-btn bg-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-100 px-4 py-2.5 rounded-t-lg font-medium text-sm whitespace-nowrap transition-colors">
+                    ⚙️ Funcionalidades
+                </button>
+                <button onclick="switchTab('tab-install')" id="btn-tab-install" class="tab-btn bg-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-100 px-4 py-2.5 rounded-t-lg font-medium text-sm whitespace-nowrap transition-colors">
+                    🛠️ Instalação
+                </button>
+                <button onclick="switchTab('tab-markdown')" id="btn-tab-markdown" class="tab-btn bg-transparent text-stone-500 hover:text-stone-700 hover:bg-stone-100 px-4 py-2.5 rounded-t-lg font-medium text-sm whitespace-nowrap transition-colors">
+                    📝 Markdown Bruto
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-20">
+
+        <!-- Separador 1: Roadmap e Progresso -->
+        <section id="tab-roadmap" class="tab-content active">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-stone-800 mb-2">Sistema de Gestão de TI e Helpdesk</h2>
+                <p class="text-stone-600 max-w-3xl leading-relaxed">Este projeto é um sistema web desenvolvido em Django para a gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controlo de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Gráfico de Progresso -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4 text-center">Progresso de Atualizações</h3>
+                    <div class="chart-container">
+                        <canvas id="roadmapChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Lista de Tarefas -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
+                    <h3 class="text-lg font-semibold text-stone-800 mb-4">Ajustes e Melhorias em Curso</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Painel do Utilizador</span></li>
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Painel do Administrador</span></li>
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Painel do Técnico</span></li>
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Envio de e-mail e PDFs automáticos</span></li>
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Módulo de Orçamentos (Avulsos e Registados)</span></li>
+                        <li class="flex items-start gap-3 p-2 bg-stone-50 rounded-lg"><span class="text-green-500">✅</span><span class="text-sm font-medium text-stone-700">Portal Público de Consulta Segura (Hash)</span></li>
+                        <li class="flex items-start gap-3 p-2 border border-dashed border-stone-200 rounded-lg"><span class="text-stone-400">⏳</span><span class="text-sm text-stone-500">Integração com sistemas externos (Unifi/Mikrotik)</span></li>
+                        <li class="flex items-start gap-3 p-2 border border-dashed border-stone-200 rounded-lg"><span class="text-stone-400">⏳</span><span class="text-sm text-stone-500">Integração de Meios de Pagamento (Futuro)</span></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Separador 2: Funcionalidades -->
+        <section id="tab-features" class="tab-content">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-stone-800 mb-2">Arquitetura e Funcionalidades Principais</h2>
+                <p class="text-stone-600">Explore os módulos centrais da plataforma. Clique nos cartões para visualizar os detalhes técnicos e as regras de negócio aplicadas.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                <!-- Card 1 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-indigo-50 rounded-lg">🏢</span>
+                            <h3 class="font-semibold text-stone-800">Gestão Corporativa</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Multi-tenant:</strong> Estrutura preparada para gerir múltiplas empresas na mesma base de dados.</li>
+                            <li><strong>Hierarquia:</strong> Empresa ➔ Setores ➔ Utilizadores.</li>
+                            <li><strong>Segurança:</strong> Mixins de proteção para garantir o isolamento de dados (cada utilizador só vê os dados da sua empresa).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-emerald-50 rounded-lg">🖥️</span>
+                            <h3 class="font-semibold text-stone-800">Inventário de Ativos</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Herança (Models):</strong> Classe Base `Equipamento` herdada por `Computador` e `Periferico`.</li>
+                            <li><strong>Armazenamento:</strong> Vínculo 1:N para múltiplos discos por PC (SSD/HDD).</li>
+                            <li><strong>Rastreabilidade:</strong> Periféricos podem ser "plugados" num PC específico ou geridos no stock geral.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-amber-50 rounded-lg">🎫</span>
+                            <h3 class="font-semibold text-stone-800">Service Desk (O.S.)</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Tickets:</strong> Manutenção corretiva, preventiva ou requisições.</li>
+                            <li><strong>Comentários:</strong> Interação com upload de anexos; formulário bloqueado após o fecho do chamado.</li>
+                            <li><strong>Workflow:</strong> Registo automático de transferência de técnicos e mudança automática de status operacionais.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-rose-50 rounded-lg">📊</span>
+                            <h3 class="font-semibold text-stone-800">Dashboards</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Utilizador:</strong> Visão consolidada de chamados e cancelamento seguro protegido por CSRF.</li>
+                            <li><strong>Administrador/Técnico:</strong> Fila de espera (Não Atribuídos), opção para "Puxar O.S." e gráficos dinâmicos.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-purple-50 rounded-lg">⚙️</span>
+                            <h3 class="font-semibold text-stone-800">Configurações Base</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Singleton:</strong> Alteração de identidade visual diretamente pelo Admin, refletindo globalmente.</li>
+                            <li><strong>SMTP Dinâmico:</strong> Backend de e-mail customizado que lê configurações diretamente da BD.</li>
+                            <li><strong>Notificações:</strong> Disparo via Django Signals em tempo real.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="feature-card bg-white rounded-xl shadow-sm border border-stone-200 p-5 cursor-pointer hover:shadow-md transition-shadow" onclick="toggleCard(this)">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl p-2 bg-sky-50 rounded-lg">💰</span>
+                            <h3 class="font-semibold text-stone-800">Orçamentos & PDFs</h3>
+                        </div>
+                        <span class="feature-icon text-stone-400">▼</span>
+                    </div>
+                    <div class="feature-details text-sm text-stone-600">
+                        <ul class="list-disc pl-5 space-y-2 mt-2">
+                            <li><strong>Calculadora:</strong> Processamento automático de lucro, markup e vendas.</li>
+                            <li><strong>Dupla Exportação:</strong> PDF Gerencial (com custos) e PDF Cliente (só valor de venda).</li>
+                            <li><strong>Portal Público:</strong> Acesso sem login com validação de expiração usando Hash segura de 6 caracteres.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Separador 3: Instalação -->
+        <section id="tab-install" class="tab-content">
+            <div class="max-w-3xl mx-auto">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-stone-800 mb-2">Guia de Instalação Rápida</h2>
+                    <p class="text-stone-600">Siga os passos abaixo para configurar o ambiente de desenvolvimento local (Python 3.8+ e Django 4.0+ recomendados).</p>
+                </div>
+
+                <div class="bg-[#1e1e1e] rounded-xl overflow-hidden shadow-lg border border-stone-700">
+                    <div class="bg-[#2d2d2d] px-4 py-2 flex items-center gap-2 border-b border-stone-700">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-xs text-stone-400 font-mono">terminal - bash</span>
+                    </div>
+                    <div class="p-5 font-mono text-sm text-stone-300 space-y-4 overflow-x-auto">
+
+                        <div>
+                            <p class="text-stone-500"># 1. Clonar e Instalar Dependências</p>
+                            <p class="text-green-400">$ <span class="text-stone-200">pip install django django-stubs django-tailwind xhtml2pdf celery redis</span></p>
+                        </div>
+
+                        <div>
+                            <p class="text-stone-500"># 2. Configurar Django settings.py (Modelo e CSRF)</p>
+                            <p class="text-indigo-400">AUTH_USER_MODEL <span class="text-stone-200">= 'accounts.Usuario'</span></p>
+                            <p class="text-indigo-400">CSRF_TRUSTED_ORIGINS <span class="text-stone-200">= ['https://seusite.com']</span></p>
+                        </div>
+
+                        <div>
+                            <p class="text-stone-500"># 3. Base de Dados e Configurações Core</p>
+                            <p class="text-green-400">$ <span class="text-stone-200">python manage.py makemigrations accounts equipamentos orders core dashboard orcamentos</span></p>
+                            <p class="text-green-400">$ <span class="text-stone-200">python manage.py migrate</span></p>
+                        </div>
+
+                        <div>
+                            <p class="text-stone-500"># 4. Criar Superutilizador</p>
+                            <p class="text-green-400">$ <span class="text-stone-200">python manage.py createsuperuser</span></p>
+                        </div>
+
+                        <div>
+                            <p class="text-stone-500"># 5. Correr o Servidor e o Tailwind (Em terminais separados)</p>
+                            <p class="text-green-400">$ <span class="text-stone-200">python manage.py runserver</span></p>
+                            <p class="text-stone-500"># Noutro terminal:</p>
+                            <p class="text-green-400">$ <span class="text-stone-200">python manage.py tailwind start</span></p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Separador 4: Markdown Bruto (Pedido Original) -->
+        <section id="tab-markdown" class="tab-content">
+            <div class="mb-4 flex justify-between items-end">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-800 mb-1">Markdown da Documentação</h2>
+                    <p class="text-stone-600 text-sm">Este é o código cru do `README.md` solicitado. Pode copiá-lo diretamente.</p>
+                </div>
+                <button onclick="copyMarkdown()" class="bg-stone-800 hover:bg-stone-900 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+                    <span>📋</span> Copiar Texto
+                </button>
+            </div>
+
+            <!-- A tag PRE mantém a formatação exata. Entidades HTML usadas para evitar conflitos de renderização -->
+            <pre class="bg-stone-900 text-stone-100 p-6 rounded-xl overflow-x-auto text-sm font-mono border border-stone-700 shadow-inner" id="markdown-text">
+# Sistema de Gestão de TI e Helpdesk (Django)
+
+Este projeto é um sistema web desenvolvido em Django para gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controlo de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).
+
+&lt;img src="screenshot/dashboard.png" alt="dashboard"&gt;
+
+### Ajustes e melhorias
+
+O projeto ainda está em desenvolvimento e as próximas atualizações serão voltadas para as seguintes tarefas:
+
+- [x] Painel do Utilizador
+- [x] Painel do Administrador
+- [x] Painel do Tecnico
+- [x] Envio de e-mail
+- [x] Filtro de Relatorios
+- [x] Envio de relatórios em PDF por email
+- [x] Orcamentos avulsos
+- [x] Orcamentos para empresas cadastradas
+- [x] Portal Público de Consulta de Orçamentos (Acesso via Link Seguro e Hash)
+- [ ] Integração com sistemas externos (unifi)
+- [ ] Integração com sistemas externos (Mikrotik)
+- [ ] Integração de Meios de Pagamento (Futuro)
+
+---
+
+## 🚀 Funcionalidades Principais
+
+### 1. Gestão Corporativa (App `accounts`)
+* **Multi-tenant**: Estrutura preparada para gerir múltiplas empresas na mesma base de dados.
+* **Hierarquia**: Empresa -&gt; Setores -&gt; Utilizadores.
+* **Utilizadores Personalizados**: Login com vínculo obrigatório a uma Empresa e Setor.
+* **Segurança**: Mixins de proteção para garantir que os utilizadores só vejam dados da sua própria empresa.
+
+### 2. Inventário de Ativos (App `equipamentos`)
+* **Herança de Modelos**:
+  * `Equipamento` (Base): Serial, Marca, Modelo, Responsável.
+  * `Computador` (Filho): Processador, RAM + Discos.
+  * `Periferico` (Filho): Monitores, Teclados, Impressoras.
+* **Gestão de Armazenamento**: Vínculo *One-to-Many* para múltiplos discos (SSD/HDD) por computador.
+* **Rastreabilidade**: Periféricos podem ser vinculados ("plugados") a um computador específico ou ficarem livres no stock.
+
+### 3. Service Desk / Chamados (App `orders` / `chamados`)
+* **Tickets e O.S.**: Abertura de chamados para manutenção corretiva, preventiva ou requisições.
+* **Sistema de Comentários**: Interação contínua entre utilizador e técnico na página de detalhes da O.S., com suporte a upload de anexos (imagens/documentos). O formulário é bloqueado automaticamente quando o chamado é encerrado.
+* **Fluxo de Trabalho**:
+  * Atribuição de técnicos (apenas utilizadores `Staff`).
+  * Registo automático de transferência de técnicos (Auditoria).
+  * Mudança automática de status (Aberto -&gt; Em Atendimento).
+  * Categorização por tipo de serviço (Hardware, Software, Rede).
+
+### 4. Dashboards e Gráficos (App `dashboard`)
+* **Painel do Utilizador**: Visão consolidada de chamados em aberto, andamento e histórico. Inclui cancelamento seguro via Modal (protegido por CSRF).
+* **Painel do Administrador/Técnico**:
+  * Fila de espera de chamados (Não Atribuídos).
+  * Opção rápida para o técnico "Puxar O.S." para si.
+  * Gráficos dinâmicos (via Chart.js) exibindo o volume de chamados por status.
+  * Filtros em tempo real na listagem.
+
+### 5. Configurações Globais e Notificações (App `core`)
+* **Design Dinâmico (Singleton)**: Alteração do Título do Sistema, texto de Rodapé e URL Base do sistema diretamente pelo Django Admin, refletindo instantaneamente em todo o site.
+* **Servidor de E-mail (SMTP) no Admin**: Backend de e-mail customizado que lê as configurações (Host, Porta, Utilizador, Password, TLS) diretamente da base de dados. Permite trocar a conta de disparo sem alterar o código-fonte ou reiniciar o servidor.
+* **Notificações Automáticas**: Disparo de e-mails em tempo real (utilizando Django Signals) para alertar solicitantes e técnicos sempre que um chamado for aberto ou atualizado.
+
+### 6. Gestão de Orçamentos e Vendas (App `orcamentos`)
+* **Catálogo de Produtos:** Base de dados centralizada de equipamentos e serviços com gestão de custo base de compra.
+* **Calculadora de Margens:** Cálculo automático de lucro, markup e valor de venda na adição de itens aos orçamentos.
+* **Múltiplos Perfis de Cliente:** Suporte flexível tanto para empresas já registadas no sistema como para clientes avulsos.
+* **Exportação Dinâmica em PDF:**
+  * **Via Gerencial:** Relatório confidencial com exposição de custos e lucros (acesso restrito à equipa técnica).
+  * **Via do Cliente:** Documento profissional otimizado para o cliente final, exibindo apenas os valores de venda.
+* **Portal Público de Consulta:** Acesso independente sem necessidade de login, onde o cliente introduz o Número da O.S. e um Código de Acesso (Hash de 6 caracteres) para consultar a proposta em PDF. Inclui validação automática de data de expiração da proposta.
+
+---
+
+## 🛠️ Instalação e Configuração
+
+### Pré-requisitos
+* Python 3.8+
+* Django 4.0+
+* `django-localflavor` (Opcional, para validação de CNPJ)
+* `django-tailwind` (Para a renderização do frontend)
+* `xhtml2pdf` (Para geração de relatórios e orçamentos em PDF)
+
+### Passo a Passo
+
+1. **Clonar e Instalar Dependências**
+   ```bash
+   pip install django django-stubs django-tailwind xhtml2pdf celery redis
+   ```
+
+2. **Configuração Inicial**
+   No ficheiro `settings.py`, certifique-se de definir o modelo de utilizador personalizado e as permissões de CSRF para o seu domínio (se estiver em produção):
+   ```python
+   AUTH_USER_MODEL = 'accounts.Usuario'
+   CSRF_TRUSTED_ORIGINS = ['[https://seusite.com](https://seusite.com)']
+   ```
+
+3. **Base de Dados e Configurações Core**
+   ```bash
+   python manage.py makemigrations accounts equipamentos orders core dashboard orcamentos
+   python manage.py migrate
+   ```
+
+4. **Criar Superutilizador**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+5. **Correr o Servidor e Tailwind**
+   Num terminal, inicie o servidor Django:
+   ```bash
+   python manage.py runserver
+   ```
+
+   Noutro terminal, inicie o compilador do Tailwind:
+   ```bash
+   python manage.py tailwind start
+   ```</pre>
+        </section>
+
+    </main>
+
+    <!-- Sistema de Notificações Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-full opacity-0 bg-stone-800 text-white px-6 py-3 rounded-lg shadow-lg font-medium transition-all duration-300 z-50">
+        ✅ Markdown copiado com sucesso!
+    </div>
+
+    <!-- Scripts de Interatividade -->
+    <script>
+        // Lógica de Navegação entre Separadores (SPA)
+        function switchTab(tabId) {
+            // Esconde todo o conteúdo
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Reseta o estilo de todos os botões
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white');
+                el.classList.add('bg-transparent', 'text-stone-500');
+            });
+
+            // Ativa o conteúdo e o botão selecionado
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-transparent', 'text-stone-500');
+            activeBtn.classList.add('bg-indigo-600', 'text-white');
+        }
+
+        // Lógica para Expandir/Recolher os cartões de Funcionalidades
+        function toggleCard(element) {
+            const isExpanded = element.classList.contains('expanded');
+
+            // Opcional: Fecha os outros (estilo acordeão). Comentado para permitir abrir vários em simultâneo.
+            // document.querySelectorAll('.feature-card').forEach(card => card.classList.remove('expanded'));
+
+            if (!isExpanded) {
+                element.classList.add('expanded');
+            } else {
+                element.classList.remove('expanded');
+            }
+        }
+
+        // Lógica para Copiar Markdown
+        function copyMarkdown() {
+            const content = document.getElementById('markdown-text').innerText;
+            const textArea = document.createElement("textarea");
+            textArea.value = content;
+            // Evita fazer scroll para o fundo da página
+            textArea.style.position = "fixed";
+            textArea.style.top = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('Falha ao copiar texto', err);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        // Mostrar Toast
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-full', 'opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-full', 'opacity-0');
+            }, 3000);
+        }
+
+        // Inicialização do Gráfico (Chart.js)
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('roadmapChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tarefas Concluídas', 'Pendentes (Futuro)'],
+                    datasets: [{
+                        data: [9, 3], // Dados baseados na checklist do README
+                        backgroundColor: [
+                            '#4f46e5', // Indigo-600
+                            '#e7e5e4'  // Stone-200
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 20, font: { family: "'Inter', sans-serif" } }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label + ': ' + context.raw + ' items';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
