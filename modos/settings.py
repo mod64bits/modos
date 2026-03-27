@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-2*r!3#v-98kb3ca)*o(#*m47yi=w_b7om!!!=1!!7ukjusfhc#"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "theme",
     "django_tailwind_cli",
     "django_extensions",
+    "django.contrib.humanize",
     # apps
     "apps.accounts",
     "apps.companies",
@@ -55,6 +56,8 @@ INSTALLED_APPS = [
     "apps.dashboard",
     "apps.base",
     "apps.equipment",
+    "apps.orcamentos",
+
     "apps.orders.apps.OrdersConfig",
 ]
 
@@ -135,9 +138,10 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = "pt-br"  # Alterado para Português do Brasil
-TIME_ZONE = "America/Sao_Paulo"  # Ajuste para seu fuso horário
+LANGUAGE_CODE = 'pt-br'
+TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
+USE_L10N = True  # Ativa a formatação de números baseada no local
 USE_TZ = True
 
 

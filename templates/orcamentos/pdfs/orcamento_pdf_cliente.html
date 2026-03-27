@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4 portrait; margin: 1.5cm; }
+        body { font-family: Helvetica, sans-serif; font-size: 12px; color: #333; }
+
+        /* Cabeçalho */
+        .header-table { width: 100%; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 20px; }
+        .header-company { width: 60%; }
+        .header-title { width: 40%; text-align: right; }
+        .company-name { font-size: 18px; font-weight: bold; color: #1e3a8a; }
+        .company-info { font-size: 10px; color: #6b7280; line-height: 1.4; }
+        .doc-title { font-size: 24px; font-weight: bold; color: #1f2937; }
+
+        /* Dados do Cliente */
+        .client-box { background-color: #f9fafb; border: 1px solid #e5e7eb; padding: 10px; margin-bottom: 20px; border-radius: 4px; }
+        .client-title { font-weight: bold; font-size: 11px; margin-bottom: 5px; color: #4b5563; text-transform: uppercase; }
+
+        /* Tabela de Produtos */
+        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        .items-table th { background-color: #f3f4f6; padding: 8px; text-align: left; border-bottom: 2px solid #d1d5db; font-size: 11px; }
+        .items-table td { padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 11px; }
+
+        /* Resumo de Totais */
+        .totals-table { width: 40%; margin-left: 60%; border-collapse: collapse; margin-bottom: 20px; }
+        .totals-table th { text-align: right; padding: 5px 10px; color: #4b5563; }
+        .totals-table td { text-align: right; padding: 5px 10px; font-weight: bold; }
+        .total-final { background-color: #1e3a8a; color: white; font-size: 14px; }
+
+        /* Descrição */
+        .desc-box { margin-bottom: 20px; font-size: 11px; line-height: 1.5; }
+
+        /* Quadro de Acesso Online */
+        .online-access-box { background-color: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; margin-top: 10px; border-radius: 4px; }
+        .online-access-title { font-size: 12px; color: #1e40af; font-weight: bold; margin-bottom: 4px; }
+        .online-access-text { font-size: 11px; color: #1e3a8a; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <!-- CABEÇALHO: DADOS DA SUA EMPRESA -->
+    <table class="header-table">
+        <tr>
+            <td class="header-company">
+                <div class="company-name">{{ minha_empresa.empresa_nome|default:"Sua Empresa" }}</div>
+                <div class="company-info">
+                    {% if minha_empresa.empresa_cnpj %}CNPJ: {{ minha_empresa.empresa_cnpj }}<br>{% endif %}
+                    {% if minha_empresa.empresa_endereco %}Endereço: {{ minha_empresa.empresa_endereco }}<br>{% endif %}
+                    {% if minha_empresa.empresa_telefone %}Contato: {{ minha_empresa.empresa_telefone }}<br>{% endif %}
+                    {% if minha_empresa.empresa_email %}E-mail: {{ minha_empresa.empresa_email }}{% endif %}
+                </div>
+            </td>
+            <td class="header-title">
+                <div class="doc-title">ORÇAMENTO</div>
+                <div style="font-size: 14px; margin-top: 5px;">Nº {{ orcamento.numero }}</div>
+                <div class="company-info" style="margin-top: 5px;">Data: {{ orcamento.criado_em|date:"d/m/Y" }}</div>
+                <div class="company-info text-red-600 font-bold" style="color: #dc2626;">Válido até: {{ orcamento.validade|date:"d/m/Y" }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- DADOS DO CLIENTE -->
+    <div class="client-box">
+        <div class="client-title">Orçamento preparado para:</div>
+        <div style="font-size: 14px; font-weight: bold;">{{ orcamento.nome_cliente }}</div>
+        {% if orcamento.empresa %}
+            {% if orcamento.empresa.cnpj %}CNPJ: {{ orcamento.empresa.cnpj }}<br>{% endif %}
+            {% if orcamento.empresa.telefone %}Telefone: {{ orcamento.empresa.telefone }}<br>{% endif %}
+        {% else %}
+            Contato: {{ orcamento.cliente_avulso_contato }}
+        {% endif %}
+    </div>
+
+    <!-- ESCOPO DO SERVIÇO -->
+    {% if orcamento.descricao_geral %}
+    <div class="client-title" style="margin-bottom: 5px;">Escopo do Projeto / Serviço:</div>
+    <div class="desc-box">
+        {{ orcamento.descricao_geral|safe }}
+    </div>
+    {% endif %}
+
+    <!-- TABELA DE PRODUTOS/SERVIÇOS (Só Valores de Venda) -->
+    <div class="client-title" style="margin-bottom: 5px;">Relação de Equipamentos e Serviços:</div>
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 50%;">Item</th>
+                <th style="width: 10%; text-align: center;">Qtd</th>
+                <th style="width: 20%; text-align: right;">Valor Unitário</th>
+                <th style="width: 20%; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in itens %}
+            <tr>
+                <td>{{ item.produto.nome }}<br><span style="font-size: 9px; color: #6b7280;">{{ item.produto.marca }} {{ item.produto.modelo }}</span></td>
+                <td style="text-align: center;">{{ item.quantidade }}</td>
+                <td style="text-align: right;">R$ {{ item.valor_unitario_venda }}</td>
+                <td style="text-align: right;">R$ {{ item.valor_total_venda }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center; color: #9ca3af;">Nenhum produto listado.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- RESUMO FINANCEIRO -->
+    <table class="totals-table">
+        <tr>
+            <th>Subtotal (Produtos):</th>
+            <td>R$ {{ orcamento.total_produtos_venda }}</td>
+        </tr>
+        <tr>
+            <th>Mão de Obra / Serviço:</th>
+            <td>R$ {{ orcamento.total_mao_de_obra }}</td>
+        </tr>
+        <tr>
+            <th class="total-final">TOTAL GERAL:</th>
+            <td class="total-final">R$ {{ orcamento.valor_total_orcamento }}</td>
+        </tr>
+    </table>
+
+    <!-- NOVO: INSTRUÇÕES PARA ACESSO ONLINE -->
+    <div class="online-access-box">
+        <div class="online-access-title">Consulte e Aprove este Orçamento Online</div>
+        <div class="online-access-text">
+            Para maior comodidade, você pode consultar o status atualizado deste documento no nosso portal.<br><br>
+            Acesse o link: <b>{{ minha_empresa.site_url|default:"http://localhost:8000" }}/orcamentos/consulta/</b><br>
+            Número do Orçamento: <b>{{ orcamento.numero }}</b><br>
+            Código de Acesso: <b>{{ orcamento.hash_acesso }}</b>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #6b7280;">
+        Agradecemos a oportunidade de apresentar esta proposta comercial.<br>
+        Ficamos à disposição para quaisquer dúvidas.
+    </div>
+
+</body>
+</html>

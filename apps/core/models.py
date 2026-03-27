@@ -1,30 +1,40 @@
 from django.db import models
 
+
 class ConfiguracaoGeral(models.Model):
     """
     Modelo Singleton para armazenar configurações globais do sistema.
     Só permite um registro no banco de dados.
     """
     titulo_sistema = models.CharField(
-        "Título do Sistema (Header)", 
-        max_length=100, 
+        "Título do Sistema (Header)",
+        max_length=100,
         default="TI Manager",
         help_text="Texto que aparece na barra superior (Navbar)."
     )
-    
+
     texto_rodape = models.CharField(
-        "Texto do Rodapé", 
-        max_length=255, 
+        "Texto do Rodapé",
+        max_length=255,
         default="Sistema de Gestão de TI. Todos os direitos reservados.",
         help_text="Texto de copyright que aparece no final da página."
     )
 
     site_url = models.URLField(
-        "URL do Sistema", 
-        default="http://172.16.254.77:8000",
-        help_text="URL base do sistema usada para gerar links em e-mails (ex: https://meusistema.com.br)"
+        "URL do Sistema",
+        default="http://localhost:8000",
+        help_text="URL base do sistema usada para gerar links em e-mails"
     )
-    
+
+    # ==========================================
+    # NOVOS CAMPOS: DADOS DA SUA EMPRESA P/ PDFs
+    # ==========================================
+    empresa_nome = models.CharField("Nome da Sua Empresa", max_length=200, default="Minha Empresa de TI")
+    empresa_cnpj = models.CharField("CNPJ", max_length=20, blank=True, help_text="Aparecerá no cabeçalho do orçamento")
+    empresa_telefone = models.CharField("Telefone/WhatsApp", max_length=20, blank=True)
+    empresa_email = models.EmailField("E-mail de Contato", blank=True)
+    empresa_endereco = models.CharField("Endereço Completo", max_length=255, blank=True)
+
     # Singleton: Forçamos o ID a ser sempre 1
     def save(self, *args, **kwargs):
         self.pk = 1
@@ -46,7 +56,6 @@ class ConfiguracaoGeral(models.Model):
     class Meta:
         verbose_name = "Configuração Geral"
         verbose_name_plural = "Configurações Gerais"
-
 
 
 class ConfiguracaoEmail(models.Model):

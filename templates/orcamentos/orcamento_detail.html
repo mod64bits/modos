@@ -1,0 +1,503 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Orçamento #{{ orcamento.numero }}{% endblock %}
+
+{% block content %}
+<!-- CSS do Quill (Editor de Texto) e Tom Select (Select Pesquisável) -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+
+<style>
+    /* Ajustes visuais para o Tom Select combinar perfeitamente com o Tailwind */
+    .ts-control {
+        border-color: #d1d5db;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+        background-color: #ffffff;
+    }
+    .ts-control.focus {
+        border-color: #6366f1; /* Cor indigo-500 do tailwind */
+        box-shadow: 0 0 0 1px #6366f1;
+    }
+    .ts-dropdown {
+        border-color: #d1d5db;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        z-index: 9999; /* Garante que fica por cima do Modal */
+    }
+    .ts-dropdown .option {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    .ts-dropdown .option.active {
+        background-color: #e0e7ff; /* Cor indigo-100 */
+        color: #3730a3; /* Cor indigo-800 */
+    }
+</style>
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <div class="mb-6 flex items-center justify-between">
+            <div>
+                <a href="{% url 'orcamentos:orcamento_list' %}" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium mb-2 inline-block">&larr; Voltar para Orçamentos</a>
+
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-3xl font-bold text-gray-900">Orçamento #{{ orcamento.numero }}</h1>
+
+                    <!-- Botão de Editar Dados do Orçamento -->
+                    <a href="{% url 'orcamentos:orcamento_update' orcamento.id %}" class="text-gray-400 hover:text-indigo-600 transition-colors p-1.5 rounded-md hover:bg-indigo-50 border border-gray-200 shadow-sm bg-white" title="Editar Dados Base do Orçamento">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </a>
+
+                    <!-- BOTÃO GERAR PDF CLIENTE -->
+                    <a href="{% url 'orcamentos:orcamento_pdf_cliente' orcamento.id %}" target="_blank" class="ml-2 inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50 focus:outline-none" title="Gerar Via do Cliente (Sem custos)">
+                        <svg class="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        PDF Cliente
+                    </a>
+
+                    <!-- BOTÃO GERAR PDF GERENCIAL (Apenas p/ Admins e Técnicos) -->
+                    {% if user.is_staff %}
+                    <a href="{% url 'orcamentos:orcamento_pdf_interno' orcamento.id %}" target="_blank" class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none" title="Gerar Relatório Interno (Com Custos e Lucro)">
+                        <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        PDF Gerencial
+                    </a>
+                    {% endif %}
+                </div>
+
+                <p class="text-sm text-gray-500 mt-1">Cliente: {{ orcamento.nome_cliente }} | Validade: {{ orcamento.validade|date:"d/m/Y" }}</p>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="px-4 py-2 rounded-full text-sm font-bold tracking-wide
+                    {% if orcamento.status == 'APROVADO' %}bg-green-100 text-green-800
+                    {% elif orcamento.status == 'REPROVADO' %}bg-red-100 text-red-800
+                    {% elif orcamento.status == 'EM_ANALISE' %}bg-yellow-100 text-yellow-800
+                    {% elif orcamento.status == 'CONCLUIDO' %}bg-indigo-100 text-indigo-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ orcamento.get_status_display }}
+                </span>
+                <!-- Botão para abrir o Modal de Alteração de Status -->
+                <button onclick="abrirModalStatus()" class="text-gray-400 hover:text-indigo-600 transition-colors p-1.5 rounded-full hover:bg-indigo-50" title="Alterar Status">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Financeiro -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-lg shadow border border-gray-200 flex flex-col justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Produtos (Venda)</p>
+                    <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_produtos_venda|floatformat:2|intcomma }}</p>
+                </div>
+                <!-- Display de Custos e Lucro no Card de Produtos -->
+                <div class="mt-3 pt-3 border-t border-gray-100 space-y-1">
+                    <p class="text-xs text-gray-500 flex justify-between">
+                        <span>Custo Base:</span>
+                        <span>R$ {{ orcamento.total_produtos_compra|floatformat:2|intcomma }}</span>
+                    </p>
+                    <p class="text-xs text-green-600 font-bold flex justify-between">
+                        <span>Lucro Obtido:</span>
+                        <span>R$ {{ orcamento.lucro_equipamentos|floatformat:2|intcomma }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-lg shadow border border-gray-200">
+                <p class="text-sm font-medium text-gray-500">Total Mão de Obra</p>
+                <p class="text-2xl font-bold text-gray-900">R$ {{ orcamento.total_mao_de_obra|floatformat:2|intcomma }}</p>
+            </div>
+
+            <div class="bg-indigo-600 p-5 rounded-lg shadow text-white">
+                <p class="text-sm font-medium text-indigo-200">Valor Final P/ Cliente</p>
+                <p class="text-3xl font-bold">R$ {{ orcamento.valor_total_orcamento|floatformat:2|intcomma }}</p>
+            </div>
+
+            <div class="bg-green-50 p-5 rounded-lg shadow border border-green-200">
+                <p class="text-sm font-medium text-green-700">Lucro Líquido</p>
+                <p class="text-2xl font-bold text-green-700">R$ {{ orcamento.lucro_total_liquido|floatformat:2|intcomma }}</p>
+                <p class="text-xs text-green-600 mt-1">Já descontado Insumos (R$ {{ orcamento.total_insumos|floatformat:2|intcomma }})</p>
+            </div>
+        </div>
+
+        <!-- Bloco de Descrição Geral do Serviço / Escopo -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Descrição do Serviço / Escopo</h3>
+            </div>
+            <!-- Usa as classes do Quill (ql-snow e ql-editor) para reaproveitar a tipografia -->
+            <div class="p-5 ql-snow border-none">
+                <div class="ql-editor text-gray-700" style="padding: 0; min-height: auto;">
+                    {{ orcamento.descricao_geral|default:"<p class='text-gray-400 italic'>Nenhum escopo geral preenchido.</p>"|safe }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg mb-8">
+            <div class="px-4 py-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Produtos e Materiais</h3>
+                <button onclick="document.getElementById('modalProduto').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors">
+                    + Adicionar Produto
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Qtd</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custo (Uni)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Markup</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Venda (Uni)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Venda</th>
+                            <th class="px-6 py-3 text-left text-xs font-bold text-green-600 uppercase tracking-wider">Lucro</th>
+                            <th class="px-6 py-3 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in itens %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ item.produto.nome }}</td>
+                            <td class="px-6 py-4 text-center text-sm text-gray-500">{{ item.quantidade }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">R$ {{ item.valor_unitario_compra_registrado|floatformat:2|intcomma }}</td>
+                            <td class="px-6 py-4 text-sm text-green-600 font-medium">+{{ item.porcentagem_markup|floatformat:2|intcomma }}%</td>
+                            <td class="px-6 py-4 text-sm text-gray-900">R$ {{ item.valor_unitario_venda|floatformat:2|intcomma }}</td>
+                            <td class="px-6 py-4 text-sm font-bold text-indigo-600">R$ {{ item.valor_total_venda|floatformat:2|intcomma }}</td>
+
+                            <td class="px-6 py-4 text-sm font-bold text-green-600">
+                                R$ <span class="lucro-calculado" data-venda="{{ item.valor_unitario_venda }}" data-compra="{{ item.valor_unitario_compra_registrado }}" data-qtd="{{ item.quantidade }}">0,00</span>
+                            </td>
+
+                            <td class="px-6 py-4 text-right flex justify-end space-x-3 items-center">
+                                <!-- Botões de Editar e Excluir com ícones destacados -->
+                                <button type="button" onclick="abrirModalEditar('{{ item.id }}', '{{ item.produto.nome|escapejs }}', '{{ item.quantidade }}', '{{ item.porcentagem_markup }}', '{{ item.valor_unitario_compra_registrado }}')" class="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded transition-colors" title="Editar este produto">
+                                    <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    Editar
+                                </button>
+                                <button type="button" onclick="abrirModalExcluir('{{ item.id }}', '{{ item.produto.nome|escapejs }}')" class="text-red-600 hover:text-red-900 text-sm font-medium flex items-center bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors" title="Remover este produto">
+                                    <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    Excluir
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="px-6 py-8 text-center text-gray-500">Nenhum produto adicionado ainda.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- DIALOG / MODAL: ALTERAR STATUS DO ORÇAMENTO    -->
+<!-- ============================================== -->
+<div id="modalStatus" class="hidden fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-0" aria-labelledby="modal-title-status" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="fecharModal('modalStatus')"></div>
+    <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title-status">Alterar Status</h3>
+
+        <form action="{% url 'orcamentos:atualizar_status_orcamento' orcamento.id %}" method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Novo Status do Orçamento</label>
+                    <select name="status" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        {% for code, name in status_choices %}
+                        <option value="{{ code }}" {% if orcamento.status == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">Salvar Alteração</button>
+                <button type="button" onclick="fecharModal('modalStatus')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- DIALOG / MODAL: ADICIONAR PRODUTO AO ORÇAMENTO -->
+<!-- ============================================== -->
+<div id="modalProduto" class="hidden fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-0" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="fecharModal('modalProduto')"></div>
+    <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6" style="overflow: visible;">
+        <!-- overflow: visible adicionado acima para o dropdown do Tom Select não ficar cortado dentro do modal -->
+
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">Adicionar Produto</h3>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Produto Base</label>
+                    {{ item_form.produto }}
+                </div>
+
+                <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
+                    <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
+                    <span class="text-sm text-blue-900 font-bold">R$ <span id="display_compra">0,00</span></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantidade</label>
+                        {{ item_form.quantidade }}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Margem (Markup %)</label>
+                        {{ item_form.porcentagem_markup }}
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
+                        <span class="text-sm font-bold text-gray-900">R$ <span id="display_venda">0,00</span></span>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                        <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
+                        <span class="text-lg font-bold text-indigo-600">R$ <span id="display_total">0,00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                    Confirmar e Adicionar
+                </button>
+                <button type="button" onclick="fecharModal('modalProduto')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- DIALOG / MODAL: EDITAR PRODUTO                 -->
+<!-- ============================================== -->
+<div id="modalEditarItem" class="hidden fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-0" aria-labelledby="modal-title-editar" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="fecharModal('modalEditarItem')"></div>
+    <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title-editar">Editar Produto do Orçamento</h3>
+
+        <form id="formEditarItem" method="POST">
+            {% csrf_token %}
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-3 rounded-md border border-gray-200 flex items-center">
+                    <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                    <span class="text-sm font-medium text-gray-700" id="edit_nome_produto"></span>
+                </div>
+
+                <div class="bg-blue-50 p-3 rounded-md border border-blue-100 flex justify-between items-center">
+                    <span class="text-sm text-blue-800 font-medium">Custo de Compra:</span>
+                    <span class="text-sm text-blue-900 font-bold">R$ <span id="edit_display_compra">0,00</span></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Quantidade</label>
+                        <input type="number" name="quantidade" id="edit_quantidade" min="1" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Margem (Markup %)</label>
+                        <input type="number" step="0.01" name="porcentagem_markup" id="edit_markup" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 sm:text-sm" required>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded-md border border-gray-200 mt-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-sm text-gray-600">Venda Unitária Planejada:</span>
+                        <span class="text-sm font-bold text-gray-900">R$ <span id="edit_display_venda">0,00</span></span>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 mt-2">
+                        <span class="text-base text-gray-800 font-medium">Total para o Cliente:</span>
+                        <span class="text-lg font-bold text-indigo-600">R$ <span id="edit_display_total">0,00</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">Salvar Alterações</button>
+                <button type="button" onclick="fecharModal('modalEditarItem')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- DIALOG / MODAL: EXCLUIR PRODUTO                -->
+<!-- ============================================== -->
+<div id="modalExcluirItem" class="hidden fixed z-50 inset-0 flex items-center justify-center p-4 sm:p-0" aria-labelledby="modal-title-excluir" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="fecharModal('modalExcluirItem')"></div>
+    <div class="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-sm sm:w-full sm:p-6">
+        <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title-excluir">Excluir Produto</h3>
+                <div class="mt-2">
+                    <p class="text-sm text-gray-500">Tem a certeza que deseja remover <span id="delete_nome_produto" class="font-bold text-gray-700"></span> deste orçamento?</p>
+                </div>
+            </div>
+        </div>
+        <form id="formExcluirItem" method="POST">
+            {% csrf_token %}
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">Sim, Excluir</button>
+                <button type="button" onclick="fecharModal('modalExcluirItem')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm transition-colors">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- JAVASCRIPT: CONTROLO DE MODAIS E MARKUP        -->
+<!-- ============================================== -->
+<!-- Importação do Tom Select -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+<script>
+    // Função auxiliar para formatar valores no padrão PT-BR (BRL)
+    function formatarMoedaBRL(valor) {
+        return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Calcula o lucro de cada item na tabela assim que a página carrega
+    document.addEventListener('DOMContentLoaded', function() {
+        const lucrosNaTabela = document.querySelectorAll('.lucro-calculado');
+
+        lucrosNaTabela.forEach(el => {
+            let vendaStr = el.getAttribute('data-venda').replace(/\./g, '').replace(',', '.');
+            let compraStr = el.getAttribute('data-compra').replace(/\./g, '').replace(',', '.');
+
+            let venda = parseFloat(vendaStr) || 0;
+            let compra = parseFloat(compraStr) || 0;
+            let qtd = parseInt(el.getAttribute('data-qtd')) || 1;
+
+            let lucroTotalItem = (venda - compra) * qtd;
+            el.innerText = formatarMoedaBRL(lucroTotalItem);
+        });
+
+        // ==============================================
+        // INICIALIZA O TOM SELECT PARA BUSCA DE PRODUTOS
+        // ==============================================
+        if(document.getElementById('id_produto')) {
+            new TomSelect("#id_produto", {
+                create: false,
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: "Pesquise e selecione um produto...",
+                // O evento onChange do Tom Select substitui o 'change' padrão do select
+                onChange: async function(value) {
+                    const produtoId = value;
+                    if (!produtoId) {
+                        valorCompraBase = 0.00;
+                        document.getElementById('display_compra').innerText = '0,00';
+                        calcularValores();
+                        return;
+                    }
+                    try {
+                        const response = await fetch(`/orcamentos/api/produto/${produtoId}/`);
+                        if(response.ok) {
+                            const data = await response.json();
+                            valorCompraBase = parseFloat(data.valor_compra);
+                            document.getElementById('display_compra').innerText = formatarMoedaBRL(valorCompraBase);
+                            calcularValores();
+                        }
+                    } catch (error) {
+                        console.error("Erro ao buscar preço:", error);
+                    }
+                }
+            });
+        }
+    });
+
+    // Funções de Controlo dos Modais
+    function fecharModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
+
+    function abrirModalStatus() {
+        document.getElementById('modalStatus').classList.remove('hidden');
+    }
+
+    let valorCompraBaseEdit = 0.00;
+
+    function abrirModalEditar(id, nome, qtd, markup, valorCompra) {
+        document.getElementById('edit_nome_produto').innerText = nome;
+        document.getElementById('edit_quantidade').value = qtd;
+
+        let formattedMarkup = markup.replace(',', '.');
+        document.getElementById('edit_markup').value = parseFloat(formattedMarkup);
+
+        valorCompraBaseEdit = parseFloat(valorCompra.replace(',', '.'));
+        document.getElementById('edit_display_compra').innerText = formatarMoedaBRL(valorCompraBaseEdit);
+
+        calcularValoresEdit();
+
+        document.getElementById('formEditarItem').action = `/orcamentos/item/${id}/editar/`;
+        document.getElementById('modalEditarItem').classList.remove('hidden');
+    }
+
+    function abrirModalExcluir(id, nome) {
+        document.getElementById('delete_nome_produto').innerText = nome;
+        document.getElementById('formExcluirItem').action = `/orcamentos/item/${id}/deletar/`;
+        document.getElementById('modalExcluirItem').classList.remove('hidden');
+    }
+
+    // ==============================================
+    // Calculadora Dinâmica (Modal ADICIONAR)
+    // ==============================================
+    let valorCompraBase = 0.00;
+    const qtdInput = document.getElementById('id_quantidade');
+    const markupInput = document.getElementById('id_porcentagem_markup');
+
+    if (qtdInput) qtdInput.addEventListener('input', calcularValores);
+    if (markupInput) markupInput.addEventListener('input', calcularValores);
+
+    function calcularValores() {
+        const markup = parseFloat(markupInput.value.replace(',', '.')) || 0;
+        const qtd = parseInt(qtdInput.value) || 1;
+
+        const valorVenda = valorCompraBase * (1 + (markup / 100));
+        const totalVenda = valorVenda * qtd;
+
+        document.getElementById('display_venda').innerText = formatarMoedaBRL(valorVenda);
+        document.getElementById('display_total').innerText = formatarMoedaBRL(totalVenda);
+    }
+
+    // ==============================================
+    // Calculadora Dinâmica (Modal EDITAR)
+    // ==============================================
+    const editQtdInput = document.getElementById('edit_quantidade');
+    const editMarkupInput = document.getElementById('edit_markup');
+
+    if (editQtdInput) editQtdInput.addEventListener('input', calcularValoresEdit);
+    if (editMarkupInput) editMarkupInput.addEventListener('input', calcularValoresEdit);
+
+    function calcularValoresEdit() {
+        const markup = parseFloat(editMarkupInput.value.replace(',', '.')) || 0;
+        const qtd = parseInt(editQtdInput.value) || 1;
+
+        const valorVenda = valorCompraBaseEdit * (1 + (markup / 100));
+        const totalVenda = valorVenda * qtd;
+
+        document.getElementById('edit_display_venda').innerText = formatarMoedaBRL(valorVenda);
+        document.getElementById('edit_display_total').innerText = formatarMoedaBRL(totalVenda);
+    }
+</script>
+{% endblock %}

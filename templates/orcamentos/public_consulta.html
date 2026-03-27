@@ -1,0 +1,79 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Orçamento</title>
+    {% tailwind_css %}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Força letras maiúsculas no campo de hash */
+        .input-hash { text-transform: uppercase; }
+    </style>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+
+        <!-- Cabeçalho Limpo sem Menu -->
+        <div class="text-center mb-8">
+            <div class="mx-auto bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 shadow-inner">
+                <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900">Consultar Orçamento</h2>
+            <p class="text-sm text-gray-500 mt-2">Insira o número e o código de acesso seguros presentes na sua proposta comercial.</p>
+        </div>
+
+        <!-- Área de Alertas de Erro (Ex: Código Inválido) -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 bg-red-50 border border-red-200 p-4 rounded-md flex items-start">
+                    <svg class="h-5 w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="text-sm text-red-700 font-medium">{{ message }}</p>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulário de Consulta -->
+        <form method="POST" action="{% url 'orcamentos:consulta_publica' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Campo 1: Número do Orçamento -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Número do Orçamento</label>
+                <div class="mt-1 relative rounded-md shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-gray-400 sm:text-sm font-bold">#</span>
+                    </div>
+                    <input type="number" name="numero" required class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-9 sm:text-sm border-gray-300 rounded-md py-3 transition-colors" placeholder="Ex: 5001">
+                </div>
+            </div>
+
+            <!-- Campo 2: Código Hash -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Código de Acesso (6 caracteres)</label>
+                <input type="text" name="hash_acesso" required maxlength="6" class="input-hash mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md py-3 text-center font-mono tracking-widest text-lg transition-colors placeholder-gray-300" placeholder="A1B2C3">
+            </div>
+
+            <!-- Botão de Acesso -->
+            <div class="pt-2">
+                <button type="submit" class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
+                    Aceder ao Documento (PDF)
+                    <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </button>
+            </div>
+        </form>
+
+        <!-- Rodapé Discreto de Segurança -->
+        <div class="mt-8 border-t border-gray-100 pt-5 flex items-center justify-center text-center">
+            <svg class="h-4 w-4 text-gray-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <p class="text-xs text-gray-400 font-medium">Conexão segura. Documento confidencial.</p>
+        </div>
+    </div>
+
+</body>
+</html>
