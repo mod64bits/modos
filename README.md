@@ -4,6 +4,12 @@ Este projeto é um sistema web desenvolvido em Django para gestão completa de d
 
 <img src="screenshot/dashboard.png" alt="dashboard">
 
+# Sistema de Gestão de TI e Helpdesk (Django)
+
+✨ **[Clique aqui para ver a nossa Documentação Interativa e Roadmap Visual!](https://seu-usuario.github.io/nome-do-repositorio/)** ✨
+
+Este projeto é um sistema web desenvolvido em Django...
+
 ### Ajustes e melhorias
 
 O projeto ainda está em desenvolvimento e as próximas atualizações serão voltadas para as seguintes tarefas:
