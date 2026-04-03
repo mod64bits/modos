@@ -1,3 +1,5 @@
+import random
+import string
 import uuid
 from decimal import Decimal
 from django.db import models
@@ -97,6 +99,10 @@ class Orcamento(models.Model):
         self.lucro_equipamentos = venda - compra
         self.lucro_total_bruto = self.lucro_equipamentos + mao_de_obra
         self.lucro_total_liquido = self.lucro_total_bruto - insumos
+
+        if not self.hash_acesso:
+            # Gera 6 caracteres misturando letras maiúsculas e números
+            self.hash_acesso = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
         super().save(*args, **kwargs)
 
