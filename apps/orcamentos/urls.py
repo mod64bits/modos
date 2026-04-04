@@ -15,7 +15,8 @@ from .views import (
     OrcamentoPDFClienteView, # Nova View de PDF (Cliente)
     OrcamentoPDFInternoView,  # Nova View de PDF (Gerencial/Técnico)
     PublicOrcamentoConsultaView,
-    PublicOrcamentoPDFView
+    PublicOrcamentoPDFView,
+clonar_orcamento
 )
 
 # Namespace para organizar as rotas deste app
@@ -41,6 +42,7 @@ urlpatterns = [
     # Ações Extras de Itens (Edição e Exclusão no Orçamento)
     path('item/<uuid:pk>/editar/', editar_item_orcamento, name='editar_item_orcamento'),
     path('item/<uuid:pk>/deletar/', deletar_item_orcamento, name='deletar_item_orcamento'),
+    path('<uuid:pk>/clonar/',clonar_orcamento, name='orcamento_clone'),
 
     # API de Preços
     path('api/produto/<uuid:pk>/', api_detalhes_produto, name='api_detalhes_produto'),

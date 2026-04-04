@@ -4,7 +4,7 @@ from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic.base import View
-
+from django.contrib.auth.decorators import login_required
 from apps.core.models import ConfiguracaoGeral
 from apps.core.gerador_pdf import render_to_pdf
 from django.urls import reverse_lazy
@@ -224,7 +224,7 @@ def editar_produto_catalogo(request, pk):
 
     return redirect('orcamentos:produto_list')
 
-
+@login_required
 def deletar_produto_catalogo(request, pk):
     """ Exclui um produto base do catálogo via Modal, respeitando relacionamentos (Protected) """
     if not request.user.is_superuser:
@@ -391,3 +391,46 @@ class PublicOrcamentoConsultaView(View):
             # Se a combinação estiver errada, devolve um erro na mesma tela
             messages.error(request, "Orçamento não encontrado ou código de acesso inválido.")
             return redirect('orcamentos:consulta_publica')
+
+
+@login_required
+def clonar_orcamento(request, pk):
+    """ Clona um orçamento existente, limpa os dados únicos e redireciona para edição """
+
+    # BLOQUEIO DE SEGURANÇA: Apenas equipa técnica pode aceder a esta função
+    if not request.user.is_staff:
+        messages.error(request, "Acesso negado. Apenas a equipa técnica pode clonar orçamentos.")
+        return redirect('orcamentos:orcamento_list')
+
+    # 1. Procurar o orçamento original
+    orcamento_original = get_object_or_404(Orcamento, pk=pk)
+
+    # 2. Criar a cópia do objeto principal (Orçamento)
+    orcamento_clone = Orcamento.objects.get(pk=pk)
+
+    # Ao definir o ID como None (vazio), o Django entende que deve criar uma NOVA linha na base de dados
+    orcamento_clone.pk = None
+
+    # Limpar os dados que têm de ser únicos ou reiniciados
+    orcamento_clone.numero = None  # Assumindo que o seu sistema gera o número automaticamente ao salvar
+    orcamento_clone.hash_acesso = ''  # O método save() que criámos antes vai gerar um novo código
+    orcamento_clone.status = 'RASCUNHO'  # Volta ao status inicial
+
+    # Guardar para gerar o novo ID (e a nova Hash/Número)
+    orcamento_clone.save()
+
+    # 3. Clonar todos os itens (produtos/serviços) relacionados
+    itens_originais = ItemProdutoOrcamento.objects.filter(orcamento=orcamento_original)
+    for item in itens_originais:
+        item.pk = None  # Limpa o ID do item
+        item.orcamento = orcamento_clone  # Vincula ao NOVO orçamento
+        item.save()
+
+    # 4. Mensagem de Sucesso e Redirecionamento
+    messages.success(
+        request,
+        f"Orçamento clonado com sucesso! Está a editar o novo orçamento (Nº {orcamento_clone.numero}). Pode agora alterar o cliente."
+    )
+
+    # Redireciona direto para a página de edição (onde o utilizador pode mudar o cliente)
+    return redirect('orcamentos:orcamento_update', pk=orcamento_clone.pk)
