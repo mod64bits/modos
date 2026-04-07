@@ -1,3 +1,4 @@
+# V-1.2
 # Sistema de Gestão de TI e Helpdesk (Django)
 
 Este projeto é um sistema web desenvolvido em Django para gestão completa de departamentos de TI, focado em ambientes multi-empresa (multi-tenant). O sistema integra controlo de acesso, inventário detalhado de hardware e gestão de chamados (Service Desk).
@@ -23,8 +24,7 @@ O projeto ainda está em desenvolvimento e as próximas atualizações serão vo
 - [x] Orcamentos avulsos
 - [x] Orcamentos para empresas cadastradas
 - [x] Portal Público de Consulta de Orçamentos (Acesso via Link Seguro e Hash)
-- [ ] Integração com sistemas externos (unifi)
-- [ ] Integração com sistemas externos (Mikrotik)
+- [x] Clone de orçamento
 - [ ] Integração de Meios de Pagamento (Futuro)
 
 ---
