@@ -52,7 +52,7 @@
                         Dashboard
                     </a>
                     {% if not user.is_staff %}
-                    <a href="{% url 'chamado_create' %}" class="text-slate-300 hover:bg-slate-800 hover:text-white group flex items-center px-4 py-3 text-sm font-medium rounded-2xl transition-all">
+                    <a href="{% url 'orders:chamado_create' %}" class="text-slate-300 hover:bg-slate-800 hover:text-white group flex items-center px-4 py-3 text-sm font-medium rounded-2xl transition-all">
                         <svg class="text-slate-500 group-hover:text-indigo-400 mr-3 flex-shrink-0 h-5 w-5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
